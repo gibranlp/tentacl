@@ -19,8 +19,8 @@ func TestContainerList_NilDocker(t *testing.T) {
 	rec := httptest.NewRecorder()
 	c := e.NewContext(req, rec)
 
-	// This should panic or return error because h.Docker is nil
-	assert.Panics(t, func() {
-		h.List(c)
-	})
+	err := h.List(c)
+	assert.NoError(t, err)
+	assert.Equal(t, http.StatusInternalServerError, rec.Code)
+	assert.Contains(t, rec.Body.String(), "docker client is not initialized")
 }

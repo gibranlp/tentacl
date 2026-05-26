@@ -1,7 +1,6 @@
 package handlers
 
 import (
-	"context"
 	"net/http"
 
 	"github.com/docker/docker/api/types/container"
@@ -14,7 +13,10 @@ type ContainerHandler struct {
 }
 
 func (h *ContainerHandler) List(c echo.Context) error {
-	containers, err := h.Docker.ContainerList(context.Background(), container.ListOptions{All: true})
+	if h.Docker == nil {
+		return c.JSON(http.StatusInternalServerError, map[string]string{"error": "docker client is not initialized"})
+	}
+	containers, err := h.Docker.ContainerList(c.Request().Context(), container.ListOptions{All: true})
 	if err != nil {
 		return c.JSON(http.StatusInternalServerError, map[string]string{"error": err.Error()})
 	}
