@@ -69,3 +69,19 @@ func TestStaticAssets(t *testing.T) {
 	assert.Equal(t, http.StatusOK, rec.Code)
 	assert.Equal(t, "index content", rec.Body.String())
 }
+
+func TestAPIRouteLeak(t *testing.T) {
+	e := echo.New()
+	mockFS := fstest.MapFS{
+		"index.html": {Data: []byte("index content")},
+	}
+	RegisterRoutes(e, nil, http.FS(mockFS))
+
+	// Missing API route should 404, not fallback to index
+	req := httptest.NewRequest(http.MethodGet, "/api/not-found", nil)
+	rec := httptest.NewRecorder()
+	e.ServeHTTP(rec, req)
+
+	assert.Equal(t, http.StatusNotFound, rec.Code)
+	assert.NotEqual(t, "index content", rec.Body.String())
+}

@@ -23,6 +23,12 @@ func RegisterRoutes(e *echo.Echo, dockerClient *client.Client, staticFS http.Fil
 	if staticFS != nil {
 		e.GET("/*", func(c echo.Context) error {
 			path := strings.TrimPrefix(c.Request().URL.Path, "/")
+			
+			// Don't serve frontend for missing /api routes
+			if strings.HasPrefix(path, "api/") {
+				return c.String(http.StatusNotFound, "Not Found")
+			}
+
 			if path == "" {
 				path = "index.html"
 			}
