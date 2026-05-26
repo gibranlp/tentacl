@@ -22,3 +22,35 @@ func (h *ContainerHandler) List(c echo.Context) error {
 	}
 	return c.JSON(http.StatusOK, containers)
 }
+
+func (h *ContainerHandler) Start(c echo.Context) error {
+	id := c.Param("id")
+	if err := h.Docker.ContainerStart(c.Request().Context(), id, container.StartOptions{}); err != nil {
+		return c.JSON(http.StatusInternalServerError, map[string]string{"error": err.Error()})
+	}
+	return c.NoContent(http.StatusNoContent)
+}
+
+func (h *ContainerHandler) Stop(c echo.Context) error {
+	id := c.Param("id")
+	if err := h.Docker.ContainerStop(c.Request().Context(), id, container.StopOptions{}); err != nil {
+		return c.JSON(http.StatusInternalServerError, map[string]string{"error": err.Error()})
+	}
+	return c.NoContent(http.StatusNoContent)
+}
+
+func (h *ContainerHandler) Restart(c echo.Context) error {
+	id := c.Param("id")
+	if err := h.Docker.ContainerRestart(c.Request().Context(), id, container.StopOptions{}); err != nil {
+		return c.JSON(http.StatusInternalServerError, map[string]string{"error": err.Error()})
+	}
+	return c.NoContent(http.StatusNoContent)
+}
+
+func (h *ContainerHandler) Remove(c echo.Context) error {
+	id := c.Param("id")
+	if err := h.Docker.ContainerRemove(c.Request().Context(), id, container.RemoveOptions{Force: true}); err != nil {
+		return c.JSON(http.StatusInternalServerError, map[string]string{"error": err.Error()})
+	}
+	return c.NoContent(http.StatusNoContent)
+}

@@ -1,10 +1,17 @@
 import { render, screen } from '@testing-library/react';
 import { describe, it, expect, vi } from 'vitest';
 import { ContainerTable } from './ContainerTable';
-import { useQuery } from '@tanstack/react-query';
+import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 
 vi.mock('@tanstack/react-query', () => ({
   useQuery: vi.fn(),
+  useMutation: vi.fn(() => ({
+    mutate: vi.fn(),
+    isPending: false,
+  })),
+  useQueryClient: vi.fn(() => ({
+    invalidateQueries: vi.fn(),
+  })),
 }));
 
 describe('ContainerTable', () => {
