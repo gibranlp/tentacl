@@ -1,3 +1,4 @@
+// Package api provides the HTTP API for the Tentacl application.
 package api
 
 import (

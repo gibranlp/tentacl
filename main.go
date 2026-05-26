@@ -7,9 +7,9 @@ import (
 
 func main() {
 	e := echo.New()
-	
+
 	// Register all routes
 	api.RegisterRoutes(e)
-	
+
 	e.Logger.Fatal(e.Start(":8080"))
 }

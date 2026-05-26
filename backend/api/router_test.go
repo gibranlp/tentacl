@@ -16,7 +16,7 @@ func TestHealthCheck(t *testing.T) {
 
 	req := httptest.NewRequest(http.MethodGet, "/health", nil)
 	rec := httptest.NewRecorder()
-	
+
 	e.ServeHTTP(rec, req)
 
 	// Assertions
