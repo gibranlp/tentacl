@@ -1,0 +1,14 @@
+.git
+node_modules
+frontend/node_modules
+dist
+frontend/dist
+backend/api/dist
+*.test.go
+**/*_test.go
+.superpowers
+docs
+README.md
+TODO.md
+start.md
+portainer/
