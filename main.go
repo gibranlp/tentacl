@@ -16,7 +16,7 @@ func main() {
 	e := echo.New()
 
 	// Register all routes
-	api.RegisterRoutes(e)
+	api.RegisterRoutes(e, cli)
 
 	e.Logger.Fatal(e.Start(":8080"))
 }
