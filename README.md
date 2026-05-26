@@ -45,5 +45,8 @@ server {
 }
 ```
 
+### Security Warning
+Tentacl requires access to `/var/run/docker.sock` to manage your containers. This gives the application root-level access to your Docker host. **Always run Tentacl behind a secure reverse proxy with authentication.**
+
 ---
 <p align="right"><sub>creator: gibranlp</sub></p>
