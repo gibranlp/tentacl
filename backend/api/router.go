@@ -3,6 +3,7 @@ package api
 
 import (
 	"net/http"
+	"strings"
 
 	"github.com/docker/docker/client"
 	"github.com/gibranlp/tentacl/backend/handlers"
@@ -10,7 +11,7 @@ import (
 )
 
 // RegisterRoutes registers all API routes
-func RegisterRoutes(e *echo.Echo, dockerClient *client.Client) {
+func RegisterRoutes(e *echo.Echo, dockerClient *client.Client, staticFS http.FileSystem) {
 	containerHandler := &handlers.ContainerHandler{Docker: dockerClient}
 
 	e.GET("/health", func(c echo.Context) error {
@@ -18,4 +19,31 @@ func RegisterRoutes(e *echo.Echo, dockerClient *client.Client) {
 	})
 
 	e.GET("/api/containers", containerHandler.List)
+
+	if staticFS != nil {
+		e.GET("/*", func(c echo.Context) error {
+			path := strings.TrimPrefix(c.Request().URL.Path, "/")
+			if path == "" {
+				path = "index.html"
+			}
+
+			f, err := staticFS.Open(path)
+			if err != nil {
+				path = "index.html"
+				f, err = staticFS.Open(path)
+				if err != nil {
+					return c.String(http.StatusNotFound, "Not Found")
+				}
+			}
+			defer f.Close()
+
+			fi, err := f.Stat()
+			if err != nil {
+				return err
+			}
+
+			http.ServeContent(c.Response(), c.Request(), path, fi.ModTime(), f)
+			return nil
+		})
+	}
 }
