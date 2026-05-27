@@ -4,8 +4,9 @@ import { loginUser } from '../api/client';
 import { Terminal } from 'lucide-react';
 
 export const LoginView = () => {
-  const [username, setUsername] = useState('');
-  const [password, setPassword] = useState('');
+  const [username, setUsername] = useState(localStorage.getItem('tentacl_username') || '');
+  const [password, setPassword] = useState(localStorage.getItem('tentacl_password') || '');
+  const [rememberMe, setRememberMe] = useState(!!localStorage.getItem('tentacl_remember'));
   const [error, setError] = useState('');
   const [loading, setLoading] = useState(false);
   const { login } = useAuth();
@@ -17,6 +18,15 @@ export const LoginView = () => {
 
     try {
       const res = await loginUser({ username, password });
+      if (rememberMe) {
+        localStorage.setItem('tentacl_username', username);
+        localStorage.setItem('tentacl_password', password);
+        localStorage.setItem('tentacl_remember', 'true');
+      } else {
+        localStorage.removeItem('tentacl_username');
+        localStorage.removeItem('tentacl_password');
+        localStorage.removeItem('tentacl_remember');
+      }
       login(res.token);
     } catch (err) {
       setError('Invalid username or password');
@@ -61,6 +71,16 @@ export const LoginView = () => {
               className="w-full bg-terminal-bg border border-terminal-dim p-2 text-white focus:outline-none focus:border-terminal-fg transition-colors"
               required
             />
+          </div>
+
+          <div className="flex items-center space-x-2">
+            <input
+              type="checkbox"
+              checked={rememberMe}
+              onChange={(e) => setRememberMe(e.target.checked)}
+              className="accent-terminal-accent"
+            />
+            <label className="text-xs text-terminal-dim">REMEMBER_ME</label>
           </div>
 
           <button
