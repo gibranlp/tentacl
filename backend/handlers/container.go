@@ -1,6 +1,7 @@
 package handlers
 
 import (
+	"io"
 	"net/http"
 
 	"github.com/docker/docker/api/types/container"
@@ -53,4 +54,30 @@ func (h *ContainerHandler) Remove(c echo.Context) error {
 		return c.JSON(http.StatusInternalServerError, map[string]string{"error": err.Error()})
 	}
 	return c.NoContent(http.StatusNoContent)
+}
+
+func (h *ContainerHandler) Logs(c echo.Context) error {
+	id := c.Param("id")
+	options := container.LogsOptions{
+		ShowStdout: true,
+		ShowStderr: true,
+		Follow:     true,
+		Tail:       "100",
+	}
+
+	logs, err := h.Docker.ContainerLogs(c.Request().Context(), id, options)
+	if err != nil {
+		return c.JSON(http.StatusInternalServerError, map[string]string{"error": err.Error()})
+	}
+	defer logs.Close()
+
+	c.Response().Header().Set(echo.HeaderContentType, echo.MIMETextPlain)
+	c.Response().WriteHeader(http.StatusOK)
+
+	// Direct stream to response
+	if _, err := io.Copy(c.Response().Writer, logs); err != nil {
+		return err
+	}
+
+	return nil
 }

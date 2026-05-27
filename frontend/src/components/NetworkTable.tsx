@@ -1,12 +1,19 @@
-import { useQuery } from '@tanstack/react-query';
-import { fetchNetworks } from '../api/client';
+import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
+import { Trash2 } from 'lucide-react';
+import { fetchNetworks, removeNetwork } from '../api/client';
 import type { Network } from '../api/client';
 
 export const NetworkTable = () => {
+  const queryClient = useQueryClient();
   const { data: networks, isLoading, error } = useQuery({
     queryKey: ['networks'],
     queryFn: fetchNetworks,
     refetchInterval: 10000,
+  });
+
+  const removeMutation = useMutation({
+    mutationFn: removeNetwork,
+    onSuccess: () => queryClient.invalidateQueries({ queryKey: ['networks'] }),
   });
 
   if (isLoading) return <div className="text-terminal-accent animate-pulse font-mono">FETCHING_NETWORKS...</div>;
@@ -23,6 +30,7 @@ export const NetworkTable = () => {
               <th className="py-2">NAME</th>
               <th className="py-2">DRIVER</th>
               <th className="py-2">SCOPE</th>
+              <th className="py-2 text-right">ACTIONS</th>
             </tr>
           </thead>
           <tbody className="text-sm font-mono">
@@ -34,11 +42,25 @@ export const NetworkTable = () => {
                 <td className="py-3 text-xs text-gray-400">
                   [{net.Scope.toUpperCase()}]
                 </td>
+                <td className="py-3 text-right">
+                  <button
+                    onClick={() => {
+                      if (confirm(`Remove network ${net.Name}?`)) {
+                        removeMutation.mutate(net.Id);
+                      }
+                    }}
+                    disabled={removeMutation.isPending}
+                    className="p-1 hover:text-terminal-danger transition-colors disabled:opacity-50"
+                    title="Remove"
+                  >
+                    <Trash2 size={16} />
+                  </button>
+                </td>
               </tr>
             ))}
             {networks?.length === 0 && (
               <tr>
-                <td colSpan={4} className="py-4 text-center text-gray-500 italic">
+                <td colSpan={5} className="py-4 text-center text-gray-500 italic">
                   NO_NETWORKS_FOUND
                 </td>
               </tr>

@@ -28,13 +28,18 @@ func RegisterRoutes(e *echo.Echo, dockerClient *client.Client, staticFS http.Fil
 	e.DELETE("/api/containers/:id", containerHandler.Remove)
 
 	e.GET("/api/images", imageHandler.List)
+	e.DELETE("/api/images/:id", imageHandler.Remove)
 	e.GET("/api/networks", networkHandler.List)
+	e.DELETE("/api/networks/:id", networkHandler.Remove)
 	e.GET("/api/volumes", volumeHandler.List)
+	e.DELETE("/api/volumes/:name", volumeHandler.Remove)
+
+	e.GET("/api/containers/:id/logs", containerHandler.Logs)
 
 	if staticFS != nil {
 		e.GET("/*", func(c echo.Context) error {
 			path := strings.TrimPrefix(c.Request().URL.Path, "/")
-			
+
 			// Don't serve frontend for missing /api routes
 			if strings.HasPrefix(path, "api/") {
 				return c.String(http.StatusNotFound, "Not Found")

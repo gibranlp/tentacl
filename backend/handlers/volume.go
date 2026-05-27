@@ -22,3 +22,11 @@ func (h *VolumeHandler) List(c echo.Context) error {
 	}
 	return c.JSON(http.StatusOK, volumes.Volumes)
 }
+
+func (h *VolumeHandler) Remove(c echo.Context) error {
+	name := c.Param("name")
+	if err := h.Docker.VolumeRemove(c.Request().Context(), name, true); err != nil {
+		return c.JSON(http.StatusInternalServerError, map[string]string{"error": err.Error()})
+	}
+	return c.NoContent(http.StatusNoContent)
+}

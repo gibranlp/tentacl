@@ -22,3 +22,11 @@ func (h *ImageHandler) List(c echo.Context) error {
 	}
 	return c.JSON(http.StatusOK, images)
 }
+
+func (h *ImageHandler) Remove(c echo.Context) error {
+	id := c.Param("id")
+	if _, err := h.Docker.ImageRemove(c.Request().Context(), id, image.RemoveOptions{Force: true}); err != nil {
+		return c.JSON(http.StatusInternalServerError, map[string]string{"error": err.Error()})
+	}
+	return c.NoContent(http.StatusNoContent)
+}

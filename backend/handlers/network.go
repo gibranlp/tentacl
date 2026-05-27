@@ -22,3 +22,11 @@ func (h *NetworkHandler) List(c echo.Context) error {
 	}
 	return c.JSON(http.StatusOK, networks)
 }
+
+func (h *NetworkHandler) Remove(c echo.Context) error {
+	id := c.Param("id")
+	if err := h.Docker.NetworkRemove(c.Request().Context(), id); err != nil {
+		return c.JSON(http.StatusInternalServerError, map[string]string{"error": err.Error()})
+	}
+	return c.NoContent(http.StatusNoContent)
+}

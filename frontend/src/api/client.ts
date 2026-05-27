@@ -60,6 +60,21 @@ export const fetchVolumes = async (): Promise<Volume[]> => {
   return response.json();
 };
 
+export const removeImage = async (id: string) => {
+  const response = await fetch(`/api/images/${id}`, { method: 'DELETE' });
+  if (!response.ok) throw new Error('Failed to remove image');
+};
+
+export const removeNetwork = async (id: string) => {
+  const response = await fetch(`/api/networks/${id}`, { method: 'DELETE' });
+  if (!response.ok) throw new Error('Failed to remove network');
+};
+
+export const removeVolume = async (name: string) => {
+  const response = await fetch(`/api/volumes/${name}`, { method: 'DELETE' });
+  if (!response.ok) throw new Error('Failed to remove volume');
+};
+
 export const startContainer = async (id: string) => {
   const response = await fetch(`/api/containers/${id}/start`, { method: 'POST' });
   if (!response.ok) throw new Error('Failed to start container');

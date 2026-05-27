@@ -1,12 +1,19 @@
-import { useQuery } from '@tanstack/react-query';
-import { fetchImages } from '../api/client';
+import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
+import { Trash2 } from 'lucide-react';
+import { fetchImages, removeImage } from '../api/client';
 import type { DockerImage } from '../api/client';
 
 export const ImageTable = () => {
+  const queryClient = useQueryClient();
   const { data: images, isLoading, error } = useQuery({
     queryKey: ['images'],
     queryFn: fetchImages,
     refetchInterval: 10000, // Poll every 10s
+  });
+
+  const removeMutation = useMutation({
+    mutationFn: removeImage,
+    onSuccess: () => queryClient.invalidateQueries({ queryKey: ['images'] }),
   });
 
   if (isLoading) return <div className="text-terminal-accent animate-pulse font-mono">FETCHING_IMAGES...</div>;
@@ -28,6 +35,7 @@ export const ImageTable = () => {
               <th className="py-2">TAGS</th>
               <th className="py-2">SIZE</th>
               <th className="py-2">CREATED</th>
+              <th className="py-2 text-right">ACTIONS</th>
             </tr>
           </thead>
           <tbody className="text-sm font-mono">
@@ -41,11 +49,25 @@ export const ImageTable = () => {
                 <td className="py-3 text-xs text-gray-400">
                   {new Date(img.Created * 1000).toLocaleDateString()}
                 </td>
+                <td className="py-3 text-right">
+                  <button
+                    onClick={() => {
+                      if (confirm(`Remove image ${img.RepoTags?.[0] || img.Id}?`)) {
+                        removeMutation.mutate(img.Id);
+                      }
+                    }}
+                    disabled={removeMutation.isPending}
+                    className="p-1 hover:text-terminal-danger transition-colors disabled:opacity-50"
+                    title="Remove"
+                  >
+                    <Trash2 size={16} />
+                  </button>
+                </td>
               </tr>
             ))}
             {images?.length === 0 && (
               <tr>
-                <td colSpan={4} className="py-4 text-center text-gray-500 italic">
+                <td colSpan={5} className="py-4 text-center text-gray-500 italic">
                   NO_IMAGES_FOUND
                 </td>
               </tr>
