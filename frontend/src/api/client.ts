@@ -34,6 +34,13 @@ export interface Volume {
   Mountpoint: string;
 }
 
+export interface HostStats {
+  cpuPercent: number;
+  memUsed: number;
+  memTotal: number;
+  uptime: number;
+}
+
 export const fetchContainers = async (): Promise<Container[]> => {
   const response = await fetch('/api/containers');
   if (!response.ok) {
@@ -75,6 +82,12 @@ export const fetchVolumes = async (): Promise<Volume[]> => {
 export const fetchVolumeInspect = async (name: string): Promise<any> => {
   const response = await fetch(`/api/volumes/${name}`);
   if (!response.ok) throw new Error('Failed to inspect volume');
+  return response.json();
+};
+
+export const fetchHostStats = async (): Promise<HostStats> => {
+  const response = await fetch('/api/host/stats');
+  if (!response.ok) throw new Error('Failed to fetch host stats');
   return response.json();
 };
 

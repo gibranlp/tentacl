@@ -16,11 +16,13 @@ func RegisterRoutes(e *echo.Echo, dockerClient *client.Client, staticFS http.Fil
 	imageHandler := &handlers.ImageHandler{Docker: dockerClient}
 	networkHandler := &handlers.NetworkHandler{Docker: dockerClient}
 	volumeHandler := &handlers.VolumeHandler{Docker: dockerClient}
+	hostHandler := &handlers.HostHandler{}
 
 	e.GET("/health", func(c echo.Context) error {
 		return c.String(http.StatusOK, "Tentacl Active")
 	})
 
+	e.GET("/api/host/stats", hostHandler.Stats)
 	e.GET("/api/containers", containerHandler.List)
 	e.POST("/api/containers/:id/start", containerHandler.Start)
 	e.POST("/api/containers/:id/stop", containerHandler.Stop)

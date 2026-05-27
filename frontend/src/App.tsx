@@ -1,12 +1,31 @@
 import { useState } from 'react';
+import { useQuery } from '@tanstack/react-query';
 import { Layout } from './components/Layout';
 import { ContainerTable } from './components/ContainerTable';
 import { ImageTable } from './components/ImageTable';
 import { NetworkTable } from './components/NetworkTable';
 import { VolumeTable } from './components/VolumeTable';
+import { fetchHostStats } from './api/client';
 
 function App() {
   const [activeView, setActiveView] = useState('DASHBOARD');
+
+  const { data: stats, isLoading: statsLoading } = useQuery({
+    queryKey: ['host-stats'],
+    queryFn: fetchHostStats,
+    refetchInterval: 5000,
+  });
+
+  const formatUptime = (seconds: number) => {
+    const days = Math.floor(seconds / (24 * 3600));
+    const hours = Math.floor((seconds % (24 * 3600)) / 3600);
+    const mins = Math.floor((seconds % 3600) / 60);
+    return `${days}d ${hours}h ${mins}m`;
+  };
+
+  const formatBytes = (bytes: number) => {
+    return (bytes / (1024 * 1024 * 1024)).toFixed(1) + ' GB';
+  };
 
   const renderContent = () => {
     switch (activeView) {
@@ -18,18 +37,25 @@ function App() {
               <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
                 <div className="border border-terminal-dim p-4 bg-black/20">
                   <div className="text-xs text-gray-500 font-mono">CPU_USAGE</div>
-                  <div className="text-2xl font-mono text-terminal-fg">4.2%</div>
+                  <div className={`text-2xl font-mono ${statsLoading ? 'animate-pulse' : 'text-terminal-fg'}`}>
+                    {statsLoading ? 'FETCHING...' : `${stats?.cpuPercent.toFixed(1)}%`}
+                  </div>
                 </div>
                 <div className="border border-terminal-dim p-4 bg-black/20">
                   <div className="text-xs text-gray-500 font-mono">MEM_USAGE</div>
-                  <div className="text-2xl font-mono text-terminal-fg">1.2 GB / 8 GB</div>
+                  <div className={`text-2xl font-mono ${statsLoading ? 'animate-pulse' : 'text-terminal-fg'}`}>
+                    {statsLoading ? 'FETCHING...' : `${formatBytes(stats?.memUsed || 0)} / ${formatBytes(stats?.memTotal || 0)}`}
+                  </div>
                 </div>
                 <div className="border border-terminal-dim p-4 bg-black/20">
                   <div className="text-xs text-gray-500 font-mono">UPTIME</div>
-                  <div className="text-2xl font-mono text-terminal-fg">12d 4h 22m</div>
+                  <div className={`text-2xl font-mono ${statsLoading ? 'animate-pulse' : 'text-terminal-fg'}`}>
+                    {statsLoading ? 'FETCHING...' : formatUptime(stats?.uptime || 0)}
+                  </div>
                 </div>
               </div>
             </section>
+...
 
             <section className="space-y-4">
               <h2 className="text-white border-b border-terminal-dim pb-2 font-mono">{'>'} RECENT_CONTAINERS</h2>
