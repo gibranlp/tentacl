@@ -29,7 +29,8 @@ type DB struct {
 
 type User struct {
 	Username string `json:"username"`
-	Password string `json:"password"`
+	Password string `json:"password,omitempty"`
+	Role     string `json:"role"`
 }
 func Init(path string) (*DB, error) {
 	if err := os.MkdirAll(filepath.Dir(path), 0700); err != nil {
@@ -104,7 +105,11 @@ func (d *DB) HasUsers() (bool, error) {
 	return hasUsers, err
 }
 
-func (d *DB) CreateUser(username, password string) error {
+func (d *DB) CreateUser(username, password, role string) error {
+	if role == "" {
+		role = "admin"
+	}
+	
 	hashedPassword, err := bcrypt.GenerateFromPassword([]byte(password), bcrypt.DefaultCost)
 	if err != nil {
 		return err
@@ -113,6 +118,7 @@ func (d *DB) CreateUser(username, password string) error {
 	user := User{
 		Username: username,
 		Password: string(hashedPassword),
+		Role:     role,
 	}
 
 	userData, err := json.Marshal(user)
@@ -129,7 +135,58 @@ func (d *DB) CreateUser(username, password string) error {
 	})
 }
 
-func (d *DB) ValidateUser(username, password string) (bool, error) {
+func (d *DB) GetUsers() ([]User, error) {
+	var users []User
+	err := d.db.View(func(tx *bbolt.Tx) error {
+		b := tx.Bucket(usersBucket)
+		return b.ForEach(func(k, v []byte) error {
+			var u User
+			if err := json.Unmarshal(v, &u); err != nil {
+				return err
+			}
+			u.Password = "" // Do not return passwords
+			users = append(users, u)
+			return nil
+		})
+	})
+	return users, err
+}
+
+func (d *DB) DeleteUser(username string) error {
+	return d.db.Update(func(tx *bbolt.Tx) error {
+		return tx.Bucket(usersBucket).Delete([]byte(username))
+	})
+}
+
+func (d *DB) UpdatePassword(username, newPassword string) error {
+	return d.db.Update(func(tx *bbolt.Tx) error {
+		b := tx.Bucket(usersBucket)
+		userData := b.Get([]byte(username))
+		if userData == nil {
+			return fmt.Errorf("user not found")
+		}
+
+		var user User
+		if err := json.Unmarshal(userData, &user); err != nil {
+			return err
+		}
+
+		hashedPassword, err := bcrypt.GenerateFromPassword([]byte(newPassword), bcrypt.DefaultCost)
+		if err != nil {
+			return err
+		}
+		user.Password = string(hashedPassword)
+
+		newUserData, err := json.Marshal(user)
+		if err != nil {
+			return err
+		}
+
+		return b.Put([]byte(username), newUserData)
+	})
+}
+
+func (d *DB) ValidateUser(username, password string) (*User, error) {
 	var user User
 	err := d.db.View(func(tx *bbolt.Tx) error {
 		b := tx.Bucket(usersBucket)
@@ -141,9 +198,14 @@ func (d *DB) ValidateUser(username, password string) (bool, error) {
 	})
 
 	if err != nil {
-		return false, err
+		return nil, err
 	}
 
 	err = bcrypt.CompareHashAndPassword([]byte(user.Password), []byte(password))
-	return err == nil, nil
+	if err != nil {
+		return nil, err
+	}
+	
+	user.Password = ""
+	return &user, nil
 }
