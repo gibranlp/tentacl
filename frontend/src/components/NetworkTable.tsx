@@ -4,9 +4,13 @@ import { Trash2, Info } from 'lucide-react';
 import { fetchNetworks, removeNetwork, fetchNetworkInspect } from '../api/client';
 import type { Network } from '../api/client';
 import { ResourceInspector } from './ResourceInspector';
+import { useNotification } from '../context/NotificationContext';
+import { useAuth } from '../context/AuthContext';
 
 export const NetworkTable = () => {
   const queryClient = useQueryClient();
+  const { role } = useAuth();
+  const { notify } = useNotification();
   const [selectedNetwork, setSelectedNetwork] = useState<Network | null>(null);
   const { data: networks, isLoading, error } = useQuery({
     queryKey: ['networks'],
@@ -19,7 +23,9 @@ export const NetworkTable = () => {
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ['networks'] });
       if (selectedNetwork) setSelectedNetwork(null);
+      notify('SUCCESS', 'Network removed successfully');
     },
+    onError: (err) => notify('ERROR', `Failed to remove network: ${err.message}`)
   });
 
   if (isLoading) return <div className="text-terminal-accent animate-pulse font-mono">FETCHING_NETWORKS...</div>;

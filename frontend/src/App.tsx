@@ -15,6 +15,7 @@ import { SetupView } from './views/SetupView';
 import { SettingsView } from './views/SettingsView';
 
 function Dashboard() {
+  const { role } = useAuth();
   const [activeView, setActiveView] = useState('DASHBOARD');
   const [isWizardOpen, setIsWizardOpen] = useState(false);
 
@@ -114,12 +115,14 @@ function Dashboard() {
   return (
     <Layout activeView={activeView} onViewChange={setActiveView}>
       {renderContent()}
-      <button 
-        onClick={() => setIsWizardOpen(true)}
-        className="fixed bottom-8 right-8 bg-terminal-accent text-black font-bold p-4 rounded-full font-mono"
-      >
-        +
-      </button>
+      {role === 'admin' && (
+        <button 
+          onClick={() => setIsWizardOpen(true)}
+          className="fixed bottom-8 right-8 bg-terminal-accent text-black font-bold p-4 rounded-full font-mono shadow-2xl hover:scale-110 transition-transform"
+        >
+          +
+        </button>
+      )}
       <WizardProvider>
         <CreateResourceWizard isOpen={isWizardOpen} onClose={() => setIsWizardOpen(false)} />
       </WizardProvider>

@@ -4,9 +4,13 @@ import { Trash2, Info } from 'lucide-react';
 import { fetchVolumes, removeVolume, fetchVolumeInspect } from '../api/client';
 import type { Volume } from '../api/client';
 import { ResourceInspector } from './ResourceInspector';
+import { useNotification } from '../context/NotificationContext';
+import { useAuth } from '../context/AuthContext';
 
 export const VolumeTable = () => {
   const queryClient = useQueryClient();
+  const { role } = useAuth();
+  const { notify } = useNotification();
   const [selectedVolume, setSelectedVolume] = useState<Volume | null>(null);
   const { data: volumes, isLoading, error } = useQuery({
     queryKey: ['volumes'],
@@ -19,7 +23,9 @@ export const VolumeTable = () => {
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ['volumes'] });
       if (selectedVolume) setSelectedVolume(null);
+      notify('SUCCESS', 'Volume removed successfully');
     },
+    onError: (err) => notify('ERROR', `Failed to remove volume: ${err.message}`)
   });
 
   if (isLoading) return <div className="text-terminal-accent animate-pulse font-mono">FETCHING_VOLUMES...</div>;

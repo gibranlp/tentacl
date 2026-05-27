@@ -4,9 +4,13 @@ import { Trash2, Info, Download } from 'lucide-react';
 import { fetchImages, removeImage, fetchImageInspect, pullImage } from '../api/client';
 import type { DockerImage } from '../api/client';
 import { ResourceInspector } from './ResourceInspector';
+import { useNotification } from '../context/NotificationContext';
+import { useAuth } from '../context/AuthContext';
 
 export const ImageTable = () => {
   const queryClient = useQueryClient();
+  const { role } = useAuth();
+  const { notify } = useNotification();
   const [selectedImage, setSelectedImage] = useState<DockerImage | null>(null);
   const [imageName, setImageName] = useState('');
   
@@ -21,7 +25,9 @@ export const ImageTable = () => {
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ['images'] });
       setImageName('');
+      notify('SUCCESS', 'Image pull initiated');
     },
+    onError: (err) => notify('ERROR', `Failed to pull image: ${err.message}`)
   });
 
   const removeMutation = useMutation({
@@ -29,7 +35,9 @@ export const ImageTable = () => {
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ['images'] });
       if (selectedImage) setSelectedImage(null);
+      notify('SUCCESS', 'Image removed successfully');
     },
+    onError: (err) => notify('ERROR', `Failed to remove image: ${err.message}`)
   });
 
   if (isLoading) return <div className="text-terminal-accent animate-pulse font-mono">FETCHING_IMAGES...</div>;
@@ -45,22 +53,24 @@ export const ImageTable = () => {
       <div className={`${selectedImage ? 'lg:w-1/2' : 'w-full'}`}>
         <div className="flex justify-between items-center mb-4">
           <h3 className="text-white font-mono">{'>'} IMAGE_LIST</h3>
-          <div className="flex space-x-2">
-            <input 
-              type="text" 
-              value={imageName}
-              onChange={(e) => setImageName(e.target.value)}
-              placeholder="e.g. nginx:latest"
-              className="bg-black border border-terminal-dim p-1 px-2 text-terminal-fg font-mono text-sm focus:outline-none focus:border-terminal-accent"
-            />
-            <button 
-              onClick={() => pullMutation.mutate(imageName)}
-              disabled={pullMutation.isPending || !imageName}
-              className="bg-terminal-accent text-black p-1 px-3 font-bold hover:bg-white transition-colors disabled:opacity-50"
-            >
-              <Download size={16} />
-            </button>
-          </div>
+          {role === 'admin' && (
+            <div className="flex space-x-2">
+              <input 
+                type="text" 
+                value={imageName}
+                onChange={(e) => setImageName(e.target.value)}
+                placeholder="e.g. nginx:latest"
+                className="bg-black border border-terminal-dim p-1 px-2 text-terminal-fg font-mono text-sm focus:outline-none focus:border-terminal-accent"
+              />
+              <button 
+                onClick={() => pullMutation.mutate(imageName)}
+                disabled={pullMutation.isPending || !imageName}
+                className="bg-terminal-accent text-black p-1 px-3 font-bold hover:bg-white transition-colors disabled:opacity-50"
+              >
+                <Download size={16} />
+              </button>
+            </div>
+          )}
         </div>
         <div className="overflow-x-auto border border-terminal-dim/50 rounded-lg">
           <table className="w-full text-left border-collapse">
