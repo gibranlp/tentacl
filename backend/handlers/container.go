@@ -1,11 +1,11 @@
 package handlers
 
 import (
-	"io"
 	"net/http"
 
 	"github.com/docker/docker/api/types/container"
 	"github.com/docker/docker/client"
+	"github.com/docker/docker/pkg/stdcopy"
 	"github.com/labstack/echo/v4"
 )
 
@@ -77,9 +77,8 @@ func (h *ContainerHandler) Logs(c echo.Context) error {
 	c.Response().WriteHeader(http.StatusOK)
 
 	// Direct stream to response
-	// Note: stdcopy.StdCopy could be used here to demultiplex, 
-	// but direct copying is faster and the frontend handles the cleanup.
-	if _, err := io.Copy(c.Response().Writer, logs); err != nil {
+	// We use stdcopy to demultiplex the Docker stream (header removal)
+	if _, err := stdcopy.StdCopy(c.Response().Writer, c.Response().Writer, logs); err != nil {
 		return err
 	}
 

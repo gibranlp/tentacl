@@ -45,14 +45,10 @@ export const LogViewer = ({ containerId, containerName, onClose, embedded = fals
 
           const text = decoder.decode(value, { stream: true });
           
-          // Improved cleanup: Docker's 8-byte header removal
-          // We strip non-printable control characters except newlines/tabs
-          const cleanText = text.replace(/[\x00-\x08\x0B\x0C\x0E-\x1F]/g, '');
-          
-          if (cleanText.trim() || text.includes('\n')) {
+          if (text.trim() || text.includes('\n')) {
             setLogs((prev) => {
               if (isStale) return prev;
-              return [...prev.slice(-1000), cleanText];
+              return [...prev.slice(-1000), text];
             });
           }
         }
@@ -94,12 +90,14 @@ export const LogViewer = ({ containerId, containerName, onClose, embedded = fals
       )}
       <div 
         ref={scrollRef}
-        className="flex-1 overflow-auto p-4 font-mono text-xs leading-relaxed selection:bg-terminal-fg selection:text-black whitespace-pre-wrap break-all"
+        className="flex-1 overflow-auto p-4 font-mono text-xs leading-tight selection:bg-terminal-fg selection:text-black whitespace-pre overflow-x-auto bg-[#050505]"
       >
         {logs.length === 0 ? (
           <div className="text-gray-600 italic">WAITING_FOR_LOGS...</div>
         ) : (
-          logs.map((log, i) => <span key={i}>{log}</span>)
+          <div className="min-w-max">
+            {logs.map((log, i) => <span key={i}>{log}</span>)}
+          </div>
         )}
       </div>
     </div>
