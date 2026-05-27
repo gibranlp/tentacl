@@ -12,8 +12,16 @@ import (
 )
 
 var (
-	usersBucket = []byte("users")
+	usersBucket      = []byte("users")
+	registriesBucket = []byte("registries")
 )
+
+type Registry struct {
+	ID     string `json:"id"`
+	URL    string `json:"url"`
+	UserID string `json:"user_id"`
+	Token  string `json:"token"`
+}
 
 type DB struct {
 	db *bbolt.DB
@@ -23,7 +31,6 @@ type User struct {
 	Username string `json:"username"`
 	Password string `json:"password"`
 }
-
 func Init(path string) (*DB, error) {
 	if err := os.MkdirAll(filepath.Dir(path), 0700); err != nil {
 		return nil, err
@@ -35,7 +42,10 @@ func Init(path string) (*DB, error) {
 	}
 
 	err = db.Update(func(tx *bbolt.Tx) error {
-		_, err := tx.CreateBucketIfNotExists(usersBucket)
+		if _, err := tx.CreateBucketIfNotExists(usersBucket); err != nil {
+			return err
+		}
+		_, err := tx.CreateBucketIfNotExists(registriesBucket)
 		return err
 	})
 
@@ -44,6 +54,40 @@ func Init(path string) (*DB, error) {
 	}
 
 	return &DB{db: db}, nil
+}
+
+func (d *DB) SaveRegistry(r Registry) error {
+	data, err := json.Marshal(r)
+	if err != nil {
+		return err
+	}
+	return d.db.Update(func(tx *bbolt.Tx) error {
+		return tx.Bucket(registriesBucket).Put([]byte(r.ID), data)
+	})
+}
+
+func (d *DB) GetRegistriesByUserID(userID string) ([]Registry, error) {
+	var regs []Registry
+	err := d.db.View(func(tx *bbolt.Tx) error {
+		b := tx.Bucket(registriesBucket)
+		return b.ForEach(func(k, v []byte) error {
+			var r Registry
+			if err := json.Unmarshal(v, &r); err != nil {
+				return err
+			}
+			if r.UserID == userID {
+				regs = append(regs, r)
+			}
+			return nil
+		})
+	})
+	return regs, err
+}
+
+func (d *DB) DeleteRegistry(id string) error {
+	return d.db.Update(func(tx *bbolt.Tx) error {
+		return tx.Bucket(registriesBucket).Delete([]byte(id))
+	})
 }
 
 func (d *DB) Close() error {
