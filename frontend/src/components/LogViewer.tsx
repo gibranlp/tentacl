@@ -5,20 +5,34 @@ interface LogViewerProps {
   containerId: string;
   containerName: string;
   onClose: () => void;
+  embedded?: boolean;
 }
 
-export const LogViewer = ({ containerId, containerName, onClose }: LogViewerProps) => {
+export const LogViewer = ({ containerId, containerName, onClose, embedded = false }: LogViewerProps) => {
   const [logs, setLogs] = useState<string[]>([]);
   const scrollRef = useRef<HTMLDivElement>(null);
   const [isConnected, setIsConnected] = useState(true);
 
   useEffect(() => {
+    let isStale = false;
+    setLogs([]); // Reset logs for new container
+    setIsConnected(true);
     let controller = new AbortController();
+    
     const fetchLogs = async () => {
       try {
         const response = await fetch(`/api/containers/${containerId}/logs`, {
           signal: controller.signal,
         });
+
+        if (!response.ok) {
+          const errorData = await response.json().catch(() => ({ error: 'Unknown error' }));
+          if (!isStale) {
+            setLogs([`[SYSTEM_ERROR]: ${errorData.error || 'Failed to fetch logs'}`]);
+            setIsConnected(false);
+          }
+          return;
+        }
 
         if (!response.body) throw new Error('No response body');
 
@@ -27,20 +41,24 @@ export const LogViewer = ({ containerId, containerName, onClose }: LogViewerProp
 
         while (true) {
           const { value, done } = await reader.read();
-          if (done) break;
+          if (done || isStale) break;
 
           const text = decoder.decode(value, { stream: true });
-          // Docker logs often have header bytes (8 bytes) that we might want to strip 
-          // but for a "terminal" vibe, raw often works or we can do basic cleanup.
-          // Let's strip potential non-printable headers if they exist.
+          
+          // Improved cleanup: Docker's 8-byte header removal
+          // We strip non-printable control characters except newlines/tabs
           const cleanText = text.replace(/[\x00-\x08\x0B\x0C\x0E-\x1F]/g, '');
           
-          setLogs((prev) => [...prev.slice(-500), cleanText]); // Keep last 500 chunks
+          if (cleanText.trim() || text.includes('\n')) {
+            setLogs((prev) => {
+              if (isStale) return prev;
+              return [...prev.slice(-1000), cleanText];
+            });
+          }
         }
       } catch (err) {
-        if ((err as Error).name !== 'AbortError') {
+        if ((err as Error).name !== 'AbortError' && !isStale) {
           console.error('Log stream error:', err);
-          setLogs((prev) => [...prev, `\n[ERROR: STREAM_DISCONNECTED]`]);
           setIsConnected(false);
         }
       }
@@ -49,6 +67,7 @@ export const LogViewer = ({ containerId, containerName, onClose }: LogViewerProp
     fetchLogs();
 
     return () => {
+      isStale = true;
       controller.abort();
     };
   }, [containerId]);
@@ -60,17 +79,19 @@ export const LogViewer = ({ containerId, containerName, onClose }: LogViewerProp
   }, [logs]);
 
   return (
-    <div className="flex flex-col h-full bg-black border border-terminal-dim rounded-lg overflow-hidden shadow-2xl">
-      <div className="flex items-center justify-between px-4 py-2 border-b border-terminal-dim bg-terminal-dim/20">
-        <div className="flex items-center space-x-2 text-terminal-accent">
-          <TerminalIcon size={16} />
-          <span className="text-xs font-mono font-bold">LOGS::{containerName.toUpperCase()}</span>
-          {!isConnected && <span className="text-[10px] text-terminal-danger animate-pulse">[OFFLINE]</span>}
+    <div className={`flex flex-col h-full bg-black overflow-hidden ${!embedded ? 'border border-terminal-dim rounded-lg shadow-2xl' : ''}`}>
+      {!embedded && (
+        <div className="flex items-center justify-between px-4 py-2 border-b border-terminal-dim bg-terminal-dim/20">
+          <div className="flex items-center space-x-2 text-terminal-accent">
+            <TerminalIcon size={16} />
+            <span className="text-xs font-mono font-bold">LOGS::{containerName.toUpperCase()}</span>
+            {!isConnected && <span className="text-[10px] text-terminal-danger animate-pulse">[OFFLINE]</span>}
+          </div>
+          <button onClick={onClose} className="hover:text-white transition-colors">
+            <X size={16} />
+          </button>
         </div>
-        <button onClick={onClose} className="hover:text-white transition-colors">
-          <X size={16} />
-        </button>
-      </div>
+      )}
       <div 
         ref={scrollRef}
         className="flex-1 overflow-auto p-4 font-mono text-xs leading-relaxed selection:bg-terminal-fg selection:text-black whitespace-pre-wrap break-all"

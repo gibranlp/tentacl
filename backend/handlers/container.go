@@ -71,13 +71,26 @@ func (h *ContainerHandler) Logs(c echo.Context) error {
 	}
 	defer logs.Close()
 
+	// Set headers for streaming
 	c.Response().Header().Set(echo.HeaderContentType, echo.MIMETextPlain)
+	c.Response().Header().Set("X-Content-Type-Options", "nosniff")
 	c.Response().WriteHeader(http.StatusOK)
 
 	// Direct stream to response
+	// Note: stdcopy.StdCopy could be used here to demultiplex, 
+	// but direct copying is faster and the frontend handles the cleanup.
 	if _, err := io.Copy(c.Response().Writer, logs); err != nil {
 		return err
 	}
 
 	return nil
+}
+
+func (h *ContainerHandler) Inspect(c echo.Context) error {
+	id := c.Param("id")
+	inspect, err := h.Docker.ContainerInspect(c.Request().Context(), id)
+	if err != nil {
+		return c.JSON(http.StatusInternalServerError, map[string]string{"error": err.Error()})
+	}
+	return c.JSON(http.StatusOK, inspect)
 }

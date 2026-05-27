@@ -75,6 +75,12 @@ export const removeVolume = async (name: string) => {
   if (!response.ok) throw new Error('Failed to remove volume');
 };
 
+export const fetchContainerInspect = async (id: string): Promise<any> => {
+  const response = await fetch(`/api/containers/${id}/inspect`);
+  if (!response.ok) throw new Error('Failed to inspect container');
+  return response.json();
+};
+
 export const startContainer = async (id: string) => {
   const response = await fetch(`/api/containers/${id}/start`, { method: 'POST' });
   if (!response.ok) throw new Error('Failed to start container');

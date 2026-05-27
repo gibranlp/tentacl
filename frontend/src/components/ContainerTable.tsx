@@ -1,13 +1,13 @@
 import { useState } from 'react';
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
-import { Play, Square, RotateCw, Trash2, FileText } from 'lucide-react';
+import { Play, Square, RotateCw, Trash2, FileText, Info } from 'lucide-react';
 import { fetchContainers, startContainer, stopContainer, restartContainer, removeContainer } from '../api/client';
 import type { Container } from '../api/client';
-import { LogViewer } from './LogViewer';
+import { ContainerDetails } from './ContainerDetails';
 
 export const ContainerTable = () => {
   const queryClient = useQueryClient();
-  const [selectedContainer, setSelectedContainer] = useState<Container | null>(null);
+  const [detailView, setDetailView] = useState<{ container: Container, tab: 'LOGS' | 'INSPECT' } | null>(null);
   const { data: containers, isLoading, error } = useQuery({
     queryKey: ['containers'],
     queryFn: fetchContainers,
@@ -25,8 +25,8 @@ export const ContainerTable = () => {
   if (error) return <div className="text-terminal-danger font-mono">ERROR: {(error as Error).message}</div>;
 
   return (
-    <div className={`mt-6 transition-all duration-500 ${selectedContainer ? 'flex flex-col lg:flex-row space-y-6 lg:space-y-0 lg:space-x-6' : ''}`}>
-      <div className={`${selectedContainer ? 'lg:w-1/2' : 'w-full'}`}>
+    <div className={`mt-6 transition-all duration-500 ${detailView ? 'flex flex-col lg:flex-row space-y-6 lg:space-y-0 lg:space-x-6' : ''}`}>
+      <div className={`${detailView ? 'lg:w-1/2' : 'w-full'}`}>
         <h3 className="text-white mb-4 font-mono">{'>'} CONTAINER_LIST</h3>
         <div className="overflow-x-auto border border-terminal-dim/50 rounded-lg">
           <table className="w-full text-left border-collapse">
@@ -42,8 +42,8 @@ export const ContainerTable = () => {
               {containers?.map((c: Container) => (
                 <tr 
                   key={c.Id} 
-                  onClick={() => setSelectedContainer(c)}
-                  className={`border-b border-terminal-dim hover:bg-terminal-dim/30 group transition-colors cursor-pointer ${selectedContainer?.Id === c.Id ? 'bg-terminal-dim/40' : ''}`}
+                  onClick={() => setDetailView({ container: c, tab: 'LOGS' })}
+                  className={`border-b border-terminal-dim hover:bg-terminal-dim/30 group transition-colors cursor-pointer ${detailView?.container.Id === c.Id ? 'bg-terminal-dim/40' : ''}`}
                 >
                   <td className="py-3 px-3 font-mono text-terminal-accent">{c.Id.substring(0, 12)}</td>
                   <td className="py-3 px-3 text-white truncate max-w-[150px]">{c.Names[0]?.replace('/', '') || 'N/A'}</td>
@@ -55,11 +55,18 @@ export const ContainerTable = () => {
                   <td className="py-3 px-3 text-right" onClick={(e) => e.stopPropagation()}>
                     <div className="flex justify-end space-x-2">
                       <button
-                        onClick={() => setSelectedContainer(c)}
+                        onClick={() => setDetailView({ container: c, tab: 'LOGS' })}
                         className="p-1 hover:text-terminal-accent transition-colors"
                         title="View Logs"
                       >
                         <FileText size={16} />
+                      </button>
+                      <button
+                        onClick={() => setDetailView({ container: c, tab: 'INSPECT' })}
+                        className="p-1 hover:text-terminal-accent transition-colors"
+                        title="Inspect Config"
+                      >
+                        <Info size={16} />
                       </button>
                       {c.State !== 'running' ? (
                         <button
@@ -116,12 +123,13 @@ export const ContainerTable = () => {
         </div>
       </div>
 
-      {selectedContainer && (
-        <div className="lg:w-1/2 h-[500px] lg:h-auto animate-in slide-in-from-right-4 duration-300">
-          <LogViewer 
-            containerId={selectedContainer.Id} 
-            containerName={selectedContainer.Names[0]?.replace('/', '') || 'unknown'} 
-            onClose={() => setSelectedContainer(null)} 
+      {detailView && (
+        <div className="lg:w-1/2 h-[600px] lg:h-auto animate-in slide-in-from-right-4 duration-300">
+          <ContainerDetails 
+            containerId={detailView.container.Id} 
+            containerName={detailView.container.Names[0]?.replace('/', '') || 'unknown'} 
+            onClose={() => setDetailView(null)} 
+            initialTab={detailView.tab}
           />
         </div>
       )}
