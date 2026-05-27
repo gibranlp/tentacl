@@ -9,8 +9,10 @@ import { CreateResourceWizard } from './components/Wizard/CreateResourceWizard';
 import { WizardProvider } from './components/Wizard/WizardContext';
 import { fetchHostStats, checkAuthStatus } from './api/client';
 import { AuthProvider, useAuth } from './context/AuthContext';
+import { NotificationProvider } from './context/NotificationContext';
 import { LoginView } from './views/LoginView';
 import { SetupView } from './views/SetupView';
+import { SettingsView } from './views/SettingsView';
 
 function Dashboard() {
   const [activeView, setActiveView] = useState('DASHBOARD');
@@ -77,12 +79,12 @@ function Dashboard() {
         );
       case 'IMAGES':
         return (
-          <div className="grid grid-cols-4 gap-4 animate-in fade-in duration-500">
-            <div className="col-span-1 border border-terminal-dim p-4 bg-black/20">
+          <div className="flex flex-col lg:grid lg:grid-cols-4 gap-6 animate-in fade-in duration-500">
+            <div className="lg:col-span-1 border border-terminal-dim p-4 bg-black/20">
               <h3 className="text-terminal-fg font-mono mb-4">{'>'} REGISTRIES</h3>
               {/* Registry list and Add button will go here */}
             </div>
-            <div className="col-span-3 space-y-4">
+            <div className="lg:col-span-3 space-y-4">
               <h2 className="text-white border-b border-terminal-dim pb-2 font-mono">{'>'} IMAGE_MANAGEMENT</h2>
               <ImageTable />
             </div>
@@ -102,6 +104,8 @@ function Dashboard() {
             <VolumeTable />
           </div>
         );
+      case 'SETTINGS':
+        return <SettingsView />;
       default:
         return <div>View not found</div>;
     }
@@ -157,9 +161,11 @@ const AppRouter = () => {
 
 function App() {
   return (
-    <AuthProvider>
-      <AppRouter />
-    </AuthProvider>
+    <NotificationProvider>
+      <AuthProvider>
+        <AppRouter />
+      </AuthProvider>
+    </NotificationProvider>
   );
 }
 
