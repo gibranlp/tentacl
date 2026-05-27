@@ -14,7 +14,7 @@ import (
 func TestContainerList_NilDocker(t *testing.T) {
 	e := echo.New()
 	h := &ContainerHandler{Docker: nil}
-	
+
 	req := httptest.NewRequest(http.MethodGet, "/api/containers", nil)
 	rec := httptest.NewRecorder()
 	c := e.NewContext(req, rec)

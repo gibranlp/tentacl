@@ -1,5 +1,6 @@
 import { useEffect, useRef, useState } from 'react';
 import { X, Terminal as TerminalIcon } from 'lucide-react';
+import { fetchWithAuth } from '../api/client';
 
 interface LogViewerProps {
   containerId: string;
@@ -21,7 +22,7 @@ export const LogViewer = ({ containerId, containerName, onClose, embedded = fals
     
     const fetchLogs = async () => {
       try {
-        const response = await fetch(`/api/containers/${containerId}/logs`, {
+        const response = await fetchWithAuth(`/api/containers/${containerId}/logs`, {
           signal: controller.signal,
         });
 

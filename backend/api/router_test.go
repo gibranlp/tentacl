@@ -13,7 +13,7 @@ import (
 func TestHealthCheck(t *testing.T) {
 	// Setup
 	e := echo.New()
-	RegisterRoutes(e, nil, nil)
+	RegisterRoutes(e, nil, nil, nil)
 
 	req := httptest.NewRequest(http.MethodGet, "/health", nil)
 	rec := httptest.NewRecorder()
@@ -27,7 +27,7 @@ func TestHealthCheck(t *testing.T) {
 
 func TestRouter_ContainerListRoute(t *testing.T) {
 	e := echo.New()
-	RegisterRoutes(e, nil, nil)
+	RegisterRoutes(e, nil, nil, nil)
 
 	// Check if the route is registered
 	found := false
@@ -46,7 +46,7 @@ func TestStaticAssets(t *testing.T) {
 		"index.html": {Data: []byte("index content")},
 		"test.js":    {Data: []byte("js content")},
 	}
-	RegisterRoutes(e, nil, http.FS(mockFS))
+	RegisterRoutes(e, nil, nil, http.FS(mockFS))
 
 	// Test exact file
 	req := httptest.NewRequest(http.MethodGet, "/test.js", nil)
@@ -75,13 +75,14 @@ func TestAPIRouteLeak(t *testing.T) {
 	mockFS := fstest.MapFS{
 		"index.html": {Data: []byte("index content")},
 	}
-	RegisterRoutes(e, nil, http.FS(mockFS))
+	RegisterRoutes(e, nil, nil, http.FS(mockFS))
 
-	// Missing API route should 404, not fallback to index
+	// Missing API route should be intercepted by JWT middleware and return 401
+	// or 404 if the route isn't defined, but the middleware runs first.
 	req := httptest.NewRequest(http.MethodGet, "/api/not-found", nil)
 	rec := httptest.NewRecorder()
 	e.ServeHTTP(rec, req)
 
-	assert.Equal(t, http.StatusNotFound, rec.Code)
+	assert.Equal(t, http.StatusUnauthorized, rec.Code)
 	assert.NotEqual(t, "index content", rec.Body.String())
 }

@@ -1,8 +1,8 @@
 package docker
 
 import (
-	"testing"
 	"github.com/stretchr/testify/assert"
+	"testing"
 )
 
 func TestNewClient(t *testing.T) {
