@@ -7,12 +7,28 @@ import { ContainerDetails } from './ContainerDetails';
 
 export const ContainerTable = () => {
   const queryClient = useQueryClient();
+  const [selectedIds, setSelectedIds] = useState<Set<string>>(new Set());
   const [detailView, setDetailView] = useState<{ container: Container, tab: 'LOGS' | 'INSPECT' | 'TERMINAL' } | null>(null);
   const { data: containers, isLoading, error } = useQuery({
     queryKey: ['containers'],
     queryFn: fetchContainers,
     refetchInterval: 5000, // Poll every 5s
   });
+
+  const toggleSelectAll = () => {
+    if (selectedIds.size === containers?.length) {
+      setSelectedIds(new Set());
+    } else {
+      setSelectedIds(new Set(containers?.map(c => c.Id)));
+    }
+  };
+
+  const toggleSelect = (id: string) => {
+    const newSelected = new Set(selectedIds);
+    if (newSelected.has(id)) newSelected.delete(id);
+    else newSelected.add(id);
+    setSelectedIds(newSelected);
+  };
 
   const invalidate = () => queryClient.invalidateQueries({ queryKey: ['containers'] });
 
@@ -32,6 +48,9 @@ export const ContainerTable = () => {
           <table className="w-full text-left border-collapse">
             <thead>
               <tr className="border-b border-terminal-dim text-xs text-gray-500 font-mono bg-terminal-dim/5">
+                <th className="py-2 px-3 w-8">
+                  <input type="checkbox" checked={selectedIds.size === containers?.length && containers?.length > 0} onChange={toggleSelectAll} className="accent-terminal-accent" />
+                </th>
                 <th className="py-2 px-3">ID</th>
                 <th className="py-2 px-3">NAME</th>
                 <th className="py-2 px-3">STATUS</th>
@@ -45,6 +64,9 @@ export const ContainerTable = () => {
                   onClick={() => setDetailView({ container: c, tab: 'LOGS' })}
                   className={`border-b border-terminal-dim hover:bg-terminal-dim/30 group transition-colors cursor-pointer ${detailView?.container.Id === c.Id ? 'bg-terminal-dim/40' : ''}`}
                 >
+                  <td className="py-3 px-3" onClick={(e) => e.stopPropagation()}>
+                    <input type="checkbox" checked={selectedIds.has(c.Id)} onChange={() => toggleSelect(c.Id)} className="accent-terminal-accent" />
+                  </td>
                   <td className="py-3 px-3 font-mono text-terminal-accent">{c.Id.substring(0, 12)}</td>
                   <td className="py-3 px-3 text-white truncate max-w-[150px]">{c.Names[0]?.replace('/', '') || 'N/A'}</td>
                   <td className="py-3 px-3">
