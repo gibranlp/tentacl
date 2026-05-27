@@ -13,6 +13,9 @@ import (
 // RegisterRoutes registers all API routes
 func RegisterRoutes(e *echo.Echo, dockerClient *client.Client, staticFS http.FileSystem) {
 	containerHandler := &handlers.ContainerHandler{Docker: dockerClient}
+	imageHandler := &handlers.ImageHandler{Docker: dockerClient}
+	networkHandler := &handlers.NetworkHandler{Docker: dockerClient}
+	volumeHandler := &handlers.VolumeHandler{Docker: dockerClient}
 
 	e.GET("/health", func(c echo.Context) error {
 		return c.String(http.StatusOK, "Tentacl Active")
@@ -23,6 +26,10 @@ func RegisterRoutes(e *echo.Echo, dockerClient *client.Client, staticFS http.Fil
 	e.POST("/api/containers/:id/stop", containerHandler.Stop)
 	e.POST("/api/containers/:id/restart", containerHandler.Restart)
 	e.DELETE("/api/containers/:id", containerHandler.Remove)
+
+	e.GET("/api/images", imageHandler.List)
+	e.GET("/api/networks", networkHandler.List)
+	e.GET("/api/volumes", volumeHandler.List)
 
 	if staticFS != nil {
 		e.GET("/*", func(c echo.Context) error {

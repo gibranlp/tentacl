@@ -1,6 +1,9 @@
 import { useState } from 'react';
 import { Layout } from './components/Layout';
 import { ContainerTable } from './components/ContainerTable';
+import { ImageTable } from './components/ImageTable';
+import { NetworkTable } from './components/NetworkTable';
+import { VolumeTable } from './components/VolumeTable';
 
 function App() {
   const [activeView, setActiveView] = useState('DASHBOARD');
@@ -42,12 +45,24 @@ function App() {
           </div>
         );
       case 'IMAGES':
+        return (
+          <div className="space-y-4 animate-in fade-in duration-500">
+            <h2 className="text-white border-b border-terminal-dim pb-2 font-mono">{'>'} IMAGE_MANAGEMENT</h2>
+            <ImageTable />
+          </div>
+        );
       case 'NETWORKS':
+        return (
+          <div className="space-y-4 animate-in fade-in duration-500">
+            <h2 className="text-white border-b border-terminal-dim pb-2 font-mono">{'>'} NETWORK_MANAGEMENT</h2>
+            <NetworkTable />
+          </div>
+        );
       case 'VOLUMES':
         return (
-          <div className="flex flex-col items-center justify-center h-[60vh] space-y-4 font-mono animate-pulse">
-            <div className="text-terminal-accent text-xl">[{activeView}]_UNDER_CONSTRUCTION</div>
-            <div className="text-gray-500 text-sm">Feature implementation in progress...</div>
+          <div className="space-y-4 animate-in fade-in duration-500">
+            <h2 className="text-white border-b border-terminal-dim pb-2 font-mono">{'>'} VOLUME_MANAGEMENT</h2>
+            <VolumeTable />
           </div>
         );
       default:
