@@ -3,8 +3,26 @@ import { UploadStep } from './Steps/UploadStep';
 import { ConfigStep } from './Steps/ConfigStep';
 
 export const CreateResourceWizard = ({ isOpen, onClose }: { isOpen: boolean; onClose: () => void }) => {
-  const { currentStep, nextStep, prevStep } = useWizard();
-  if (!isOpen) return null;
+  const { currentStep, nextStep, prevStep, formData } = useWizard();
+  const [deploying, setDeploying] = useState(false);
+
+  const handleDeploy = async () => {
+    setDeploying(true);
+    try {
+      const response = await fetch('/api/containers/create', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify(formData),
+      });
+      if (!response.ok) throw new Error('Deployment failed');
+      alert('Deployment success!');
+      onClose();
+    } catch (err) {
+      alert('Deployment failed');
+    } finally {
+      setDeploying(false);
+    }
+  };
 
   const renderStep = () => {
     switch (currentStep) {
@@ -27,7 +45,11 @@ export const CreateResourceWizard = ({ isOpen, onClose }: { isOpen: boolean; onC
           <button onClick={onClose} className="text-red-500 hover:text-red-400">CANCEL</button>
           <div className="space-x-4">
             <button onClick={prevStep} disabled={currentStep === 0} className="text-terminal-dim hover:text-terminal-fg disabled:opacity-30">BACK</button>
-            <button onClick={nextStep} className="text-terminal-accent hover:text-white">NEXT</button>
+            {currentStep === 1 ? (
+              <button onClick={handleDeploy} disabled={deploying} className="text-terminal-accent hover:text-white">DEPLOY</button>
+            ) : (
+              <button onClick={nextStep} className="text-terminal-accent hover:text-white">NEXT</button>
+            )}
           </div>
         </div>
       </div>
