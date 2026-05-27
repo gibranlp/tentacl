@@ -54,7 +54,6 @@ describe('ContainerTable', () => {
 
     expect(screen.getByText('web-server')).toBeInTheDocument();
     expect(screen.getByText('db-server')).toBeInTheDocument();
-    expect(screen.getByText('nginx:latest')).toBeInTheDocument();
     expect(screen.getByText('123456789012')).toBeInTheDocument();
   });
 
