@@ -5,7 +5,8 @@ import { ContainerTable } from './components/ContainerTable';
 import { ImageTable } from './components/ImageTable';
 import { NetworkTable } from './components/NetworkTable';
 import { VolumeTable } from './components/VolumeTable';
-import { CreateResourceWizard } from './components/CreateResourceWizard';
+import { CreateResourceWizard } from './components/Wizard/CreateResourceWizard';
+import { WizardProvider } from './components/Wizard/WizardContext';
 import { fetchHostStats, checkAuthStatus } from './api/client';
 import { AuthProvider, useAuth } from './context/AuthContext';
 import { LoginView } from './views/LoginView';
@@ -115,7 +116,9 @@ function Dashboard() {
       >
         +
       </button>
-      <CreateResourceWizard isOpen={isWizardOpen} onClose={() => setIsWizardOpen(false)} />
+      <WizardProvider>
+        <CreateResourceWizard isOpen={isWizardOpen} onClose={() => setIsWizardOpen(false)} />
+      </WizardProvider>
     </Layout>
   );
 }
