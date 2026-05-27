@@ -58,6 +58,7 @@ func RegisterRoutes(e *echo.Echo, dockerClient *client.Client, database *db.DB, 
 	apiGroup.DELETE("/containers/:id", containerHandler.Remove)
 
 	apiGroup.GET("/images", imageHandler.List)
+	apiGroup.POST("/images/pull", imageHandler.Pull)
 	apiGroup.DELETE("/images/:id", imageHandler.Remove)
 	apiGroup.GET("/images/:id", imageHandler.Inspect)
 	apiGroup.GET("/networks", networkHandler.List)
