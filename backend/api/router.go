@@ -34,11 +34,29 @@ func RegisterRoutes(e *echo.Echo, dockerClient *client.Client, database *db.DB, 
 	authGroup.POST("/setup", authHandler.Setup)
 	authGroup.POST("/login", authHandler.Login)
 
+	// RBAC Middleware
+	adminOnly := func(next echo.HandlerFunc) echo.HandlerFunc {
+		return func(c echo.Context) error {
+			user := c.Get("user").(*jwt.Token)
+			claims := user.Claims.(jwt.MapClaims)
+			role := claims["role"].(string)
+			if role != "admin" {
+				return echo.NewHTTPError(http.StatusForbidden, "Admin access required")
+			}
+			return next(c)
+		}
+	}
+
 	// Protected routes
 	apiGroup := e.Group("/api")
 	apiGroup.Use(echojwt.WithConfig(echojwt.Config{
 		SigningKey: handlers.JWTSecret,
 		TokenLookup: "header:Authorization:Bearer ,query:token",
+		ErrorHandler: func(c echo.Context, err error) error {
+			authHeader := c.Request().Header.Get("Authorization")
+			c.Logger().Errorf("JWT Auth Error: %v | Header: %s", err, authHeader)
+			return echo.NewHTTPError(http.StatusUnauthorized, "Invalid or expired token")
+		},
 		Skipper: func(c echo.Context) bool {
 			// Skip JWT auth for public auth endpoints
 			path := c.Request().URL.Path
@@ -46,32 +64,36 @@ func RegisterRoutes(e *echo.Echo, dockerClient *client.Client, database *db.DB, 
 		},
 	}))
 
-	apiGroup.POST("/users", authHandler.CreateUser)
+	// User management
+	apiGroup.GET("/users", authHandler.ListUsers, adminOnly)
+	apiGroup.POST("/users", authHandler.CreateUser, adminOnly)
+	apiGroup.DELETE("/users/:username", authHandler.DeleteUser, adminOnly)
+	apiGroup.PATCH("/users/me/password", authHandler.ChangePassword)
 
-	apiGroup.POST("/registries", registryHandler.Add)
+	apiGroup.POST("/registries", registryHandler.Add, adminOnly)
 	apiGroup.GET("/registries", registryHandler.List)
-	apiGroup.DELETE("/registries/:id", registryHandler.Remove)
+	apiGroup.DELETE("/registries/:id", registryHandler.Remove, adminOnly)
 
-	apiGroup.POST("/images/build", buildHandler.Build)
-	apiGroup.POST("/stacks/deploy", stackHandler.Deploy)
-	apiGroup.POST("/containers/create", containerHandler.Create)
+	apiGroup.POST("/images/build", buildHandler.Build, adminOnly)
+	apiGroup.POST("/stacks/deploy", stackHandler.Deploy, adminOnly)
+	apiGroup.POST("/containers/create", containerHandler.Create, adminOnly)
 
 	apiGroup.GET("/host/stats", hostHandler.Stats)
 	apiGroup.GET("/containers", containerHandler.List)
-	apiGroup.POST("/containers/:id/start", containerHandler.Start)
-	apiGroup.POST("/containers/:id/stop", containerHandler.Stop)
-	apiGroup.POST("/containers/:id/restart", containerHandler.Restart)
-	apiGroup.DELETE("/containers/:id", containerHandler.Remove)
+	apiGroup.POST("/containers/:id/start", containerHandler.Start, adminOnly)
+	apiGroup.POST("/containers/:id/stop", containerHandler.Stop, adminOnly)
+	apiGroup.POST("/containers/:id/restart", containerHandler.Restart, adminOnly)
+	apiGroup.DELETE("/containers/:id", containerHandler.Remove, adminOnly)
 
 	apiGroup.GET("/images", imageHandler.List)
-	apiGroup.POST("/images/pull", imageHandler.Pull)
-	apiGroup.DELETE("/images/:id", imageHandler.Remove)
+	apiGroup.POST("/images/pull", imageHandler.Pull, adminOnly)
+	apiGroup.DELETE("/images/:id", imageHandler.Remove, adminOnly)
 	apiGroup.GET("/images/:id", imageHandler.Inspect)
 	apiGroup.GET("/networks", networkHandler.List)
-	apiGroup.DELETE("/networks/:id", networkHandler.Remove)
+	apiGroup.DELETE("/networks/:id", networkHandler.Remove, adminOnly)
 	apiGroup.GET("/networks/:id", networkHandler.Inspect)
 	apiGroup.GET("/volumes", volumeHandler.List)
-	apiGroup.DELETE("/volumes/:name", volumeHandler.Remove)
+	apiGroup.DELETE("/volumes/:name", volumeHandler.Remove, adminOnly)
 	apiGroup.GET("/volumes/:name", volumeHandler.Inspect)
 
 	apiGroup.GET("/containers/:id/logs", containerHandler.Logs)
