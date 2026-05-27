@@ -1,6 +1,7 @@
 package handlers
 
 import (
+	"io"
 	"net/http"
 
 	"github.com/docker/docker/api/types/container"
@@ -8,6 +9,20 @@ import (
 	"github.com/docker/docker/pkg/stdcopy"
 	"github.com/labstack/echo/v4"
 )
+
+// flushWriter wraps an io.Writer and an http.Flusher to ensure data is sent immediately.
+type flushWriter struct {
+	w io.Writer
+	f http.Flusher
+}
+
+func (fw *flushWriter) Write(p []byte) (n int, err error) {
+	n, err = fw.w.Write(p)
+	if fw.f != nil {
+		fw.f.Flush()
+	}
+	return
+}
 
 type ContainerHandler struct {
 	Docker *client.Client
@@ -72,14 +87,24 @@ func (h *ContainerHandler) Logs(c echo.Context) error {
 	defer logs.Close()
 
 	// Set headers for streaming
-	c.Response().Header().Set(echo.HeaderContentType, echo.MIMETextPlain)
-	c.Response().Header().Set("X-Content-Type-Options", "nosniff")
-	c.Response().WriteHeader(http.StatusOK)
+	res := c.Response()
+	res.Header().Set(echo.HeaderContentType, echo.MIMETextPlain)
+	res.Header().Set("X-Content-Type-Options", "nosniff")
+	res.Header().Set("Connection", "keep-alive")
+	res.Header().Set("Transfer-Encoding", "chunked")
+	res.WriteHeader(http.StatusOK)
+
+	// Create a flushing writer
+	flusher, _ := res.Writer.(http.Flusher)
+	fw := &flushWriter{w: res.Writer, f: flusher}
 
 	// Direct stream to response
 	// We use stdcopy to demultiplex the Docker stream (header removal)
-	if _, err := stdcopy.StdCopy(c.Response().Writer, c.Response().Writer, logs); err != nil {
-		return err
+	// If stdcopy fails (e.g. TTY mode), we fallback to a simple copy
+	_, err = stdcopy.StdCopy(fw, fw, logs)
+	if err != nil {
+		// Fallback for TTY containers where the stream is raw
+		_, _ = io.Copy(fw, logs)
 	}
 
 	return nil
