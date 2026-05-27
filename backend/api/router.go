@@ -35,10 +35,11 @@ func RegisterRoutes(e *echo.Echo, dockerClient *client.Client, database *db.DB, 
 	apiGroup := e.Group("/api")
 	apiGroup.Use(echojwt.WithConfig(echojwt.Config{
 		SigningKey: handlers.JWTSecret,
+		TokenLookup: "header:Authorization:Bearer ,query:token",
 		Skipper: func(c echo.Context) bool {
-			// Skip JWT auth for public auth endpoints and WebSocket upgrade
+			// Skip JWT auth for public auth endpoints
 			path := c.Request().URL.Path
-			return strings.HasPrefix(path, "/api/auth/") || strings.HasSuffix(path, "/exec")
+			return strings.HasPrefix(path, "/api/auth/")
 		},
 	}))
 
@@ -64,10 +65,11 @@ func RegisterRoutes(e *echo.Echo, dockerClient *client.Client, database *db.DB, 
 	apiGroup.GET("/containers/:id/logs", containerHandler.Logs)
 	apiGroup.GET("/containers/:id/inspect", containerHandler.Inspect)
 
-	// Exec is handled in standard e router because WebSocket upgrade has issues with some middlewares
-	e.GET("/api/containers/:id/exec", containerHandler.Exec)
+	// Exec uses standard GET but passes token via query param
+	apiGroup.GET("/containers/:id/exec", containerHandler.Exec)
 
 	if staticFS != nil {
+
 		e.GET("/*", func(c echo.Context) error {
 			path := strings.TrimPrefix(c.Request().URL.Path, "/")
 

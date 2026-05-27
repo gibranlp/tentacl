@@ -39,7 +39,10 @@ export const TerminalViewer = ({ containerId, containerName, onClose }: Terminal
 
     // Initialize WebSocket
     const protocol = window.location.protocol === 'https:' ? 'wss:' : 'ws:';
-    const wsUrl = `${protocol}//${window.location.host}/api/containers/${containerId}/exec`;
+    const token = localStorage.getItem('tentacl_token');
+    // We pass the token via a query parameter because WebSockets in browsers don't support custom headers easily.
+    // We need to update the backend middleware to accept tokens from query parameters.
+    const wsUrl = `${protocol}//${window.location.host}/api/containers/${containerId}/exec?token=${token}`;
     const ws = new WebSocket(wsUrl);
     wsRef.current = ws;
 
