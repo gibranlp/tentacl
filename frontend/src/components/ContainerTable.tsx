@@ -124,7 +124,7 @@ export const ContainerTable = () => {
       </div>
 
       {detailView && (
-        <div className="lg:w-1/2 h-[600px] lg:h-auto animate-in slide-in-from-right-4 duration-300">
+        <div className="lg:w-1/2 h-[800px] lg:h-[calc(100vh-200px)] animate-in slide-in-from-right-4 duration-300 lg:sticky lg:top-0">
           <ContainerDetails 
             containerId={detailView.container.Id} 
             containerName={detailView.container.Names[0]?.replace('/', '') || 'unknown'} 
