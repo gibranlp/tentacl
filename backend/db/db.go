@@ -3,6 +3,8 @@ package db
 import (
 	"encoding/json"
 	"fmt"
+	"os"
+	"path/filepath"
 	"time"
 
 	"go.etcd.io/bbolt"
@@ -23,6 +25,10 @@ type User struct {
 }
 
 func Init(path string) (*DB, error) {
+	if err := os.MkdirAll(filepath.Dir(path), 0700); err != nil {
+		return nil, err
+	}
+
 	db, err := bbolt.Open(path, 0600, &bbolt.Options{Timeout: 1 * time.Second})
 	if err != nil {
 		return nil, err

@@ -20,7 +20,7 @@ RUN CGO_ENABLED=0 GOOS=linux go build -o tentacl main.go
 # Stage 3: Final runtime image
 FROM alpine:latest
 RUN apk --no-cache add ca-certificates
-WORKDIR /root/
+WORKDIR /app
 COPY --from=backend-builder /app/tentacl .
 EXPOSE 8095
 ENTRYPOINT ["./tentacl"]
