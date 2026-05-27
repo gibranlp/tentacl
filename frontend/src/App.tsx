@@ -120,13 +120,13 @@ const AppRouter = () => {
       }
     };
     checkSetup();
-  }, []);
+  }, [isAuthenticated]); // Re-check setup status when auth changes
 
   if (needsSetup === null) {
     return <div className="min-h-screen bg-terminal-bg flex items-center justify-center text-terminal-accent font-mono animate-pulse">INIT_SYSTEM...</div>;
   }
 
-  if (needsSetup) {
+  if (needsSetup && !isAuthenticated) {
     return <SetupView />;
   }
 
