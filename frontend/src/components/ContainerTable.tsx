@@ -52,12 +52,29 @@ export const ContainerTable = () => {
                   <th className="py-2 px-3 w-8">
                     <input type="checkbox" checked={true} onChange={() => setSelectedIds(new Set())} className="accent-black" />
                   </th>
+import { executeBulkAction } from '../utils/bulkActions';
+import { fetchContainers, startContainer, stopContainer, restartContainer, removeContainer } from '../api/client';
+// ...
                   <th colSpan={4} className="py-2 px-3 text-left">
                     {selectedIds.size} SELECTED
                     <span className="ml-4 space-x-2">
-                      <button onClick={() => {}} className="hover:underline font-bold">START</button>
-                      <button onClick={() => {}} className="hover:underline font-bold">STOP</button>
-                      <button onClick={() => {}} className="hover:underline font-bold">REMOVE</button>
+                      <button onClick={async () => {
+                        await executeBulkAction(Array.from(selectedIds), startContainer);
+                        setSelectedIds(new Set());
+                        invalidate();
+                      }} className="hover:underline font-bold">START</button>
+                      <button onClick={async () => {
+                        await executeBulkAction(Array.from(selectedIds), stopContainer);
+                        setSelectedIds(new Set());
+                        invalidate();
+                      }} className="hover:underline font-bold">STOP</button>
+                      <button onClick={async () => {
+                        if (confirm(`Remove ${selectedIds.size} containers?`)) {
+                          await executeBulkAction(Array.from(selectedIds), removeContainer);
+                          setSelectedIds(new Set());
+                          invalidate();
+                        }
+                      }} className="hover:underline font-bold">REMOVE</button>
                     </span>
                   </th>
                 </tr>
