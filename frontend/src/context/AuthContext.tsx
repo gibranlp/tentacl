@@ -13,6 +13,15 @@ const AuthContext = createContext<AuthContextType | undefined>(undefined);
 export const AuthProvider = ({ children }: { children: ReactNode }) => {
   const [token, setToken] = useState<string | null>(localStorage.getItem('tentacl_token'));
 
+  // Sync state if localStorage changes from another tab/window
+  useEffect(() => {
+    const handleStorageChange = () => {
+      setToken(localStorage.getItem('tentacl_token'));
+    };
+    window.addEventListener('storage', handleStorageChange);
+    return () => window.removeEventListener('storage', handleStorageChange);
+  }, []);
+
   useEffect(() => {
     if (token) {
       localStorage.setItem('tentacl_token', token);
