@@ -41,8 +41,24 @@ export interface HostStats {
   uptime: number;
 }
 
+export const fetchWithAuth = async (url: string, options: RequestInit = {}) => {
+  const token = localStorage.getItem('tentacl_token');
+  const headers = new Headers(options.headers || {});
+  
+  if (token) {
+    headers.set('Authorization', `Bearer ${token}`);
+  }
+
+  const response = await fetch(url, { ...options, headers });
+  if (response.status === 401) {
+    localStorage.removeItem('tentacl_token');
+    window.location.reload(); // Force re-auth
+  }
+  return response;
+};
+
 export const fetchContainers = async (): Promise<Container[]> => {
-  const response = await fetch('/api/containers');
+  const response = await fetchWithAuth('/api/containers');
   if (!response.ok) {
     throw new Error('Failed to fetch containers');
   }
@@ -50,84 +66,110 @@ export const fetchContainers = async (): Promise<Container[]> => {
 };
 
 export const fetchImages = async (): Promise<DockerImage[]> => {
-  const response = await fetch('/api/images');
+  const response = await fetchWithAuth('/api/images');
   if (!response.ok) throw new Error('Failed to fetch images');
   return response.json();
 };
 
 export const fetchImageInspect = async (id: string): Promise<any> => {
-  const response = await fetch(`/api/images/${id}`);
+  const response = await fetchWithAuth(`/api/images/${id}`);
   if (!response.ok) throw new Error('Failed to inspect image');
   return response.json();
 };
 
 export const fetchNetworks = async (): Promise<Network[]> => {
-  const response = await fetch('/api/networks');
+  const response = await fetchWithAuth('/api/networks');
   if (!response.ok) throw new Error('Failed to fetch networks');
   return response.json();
 };
 
 export const fetchNetworkInspect = async (id: string): Promise<any> => {
-  const response = await fetch(`/api/networks/${id}`);
+  const response = await fetchWithAuth(`/api/networks/${id}`);
   if (!response.ok) throw new Error('Failed to inspect network');
   return response.json();
 };
 
 export const fetchVolumes = async (): Promise<Volume[]> => {
-  const response = await fetch('/api/volumes');
+  const response = await fetchWithAuth('/api/volumes');
   if (!response.ok) throw new Error('Failed to fetch volumes');
   return response.json();
 };
 
 export const fetchVolumeInspect = async (name: string): Promise<any> => {
-  const response = await fetch(`/api/volumes/${name}`);
+  const response = await fetchWithAuth(`/api/volumes/${name}`);
   if (!response.ok) throw new Error('Failed to inspect volume');
   return response.json();
 };
 
 export const fetchHostStats = async (): Promise<HostStats> => {
-  const response = await fetch('/api/host/stats');
+  const response = await fetchWithAuth('/api/host/stats');
   if (!response.ok) throw new Error('Failed to fetch host stats');
   return response.json();
 };
 
 export const removeImage = async (id: string) => {
-  const response = await fetch(`/api/images/${id}`, { method: 'DELETE' });
+  const response = await fetchWithAuth(`/api/images/${id}`, { method: 'DELETE' });
   if (!response.ok) throw new Error('Failed to remove image');
 };
 
 export const removeNetwork = async (id: string) => {
-  const response = await fetch(`/api/networks/${id}`, { method: 'DELETE' });
+  const response = await fetchWithAuth(`/api/networks/${id}`, { method: 'DELETE' });
   if (!response.ok) throw new Error('Failed to remove network');
 };
 
 export const removeVolume = async (name: string) => {
-  const response = await fetch(`/api/volumes/${name}`, { method: 'DELETE' });
+  const response = await fetchWithAuth(`/api/volumes/${name}`, { method: 'DELETE' });
   if (!response.ok) throw new Error('Failed to remove volume');
 };
 
 export const fetchContainerInspect = async (id: string): Promise<any> => {
-  const response = await fetch(`/api/containers/${id}/inspect`);
+  const response = await fetchWithAuth(`/api/containers/${id}/inspect`);
   if (!response.ok) throw new Error('Failed to inspect container');
   return response.json();
 };
 
 export const startContainer = async (id: string) => {
-  const response = await fetch(`/api/containers/${id}/start`, { method: 'POST' });
+  const response = await fetchWithAuth(`/api/containers/${id}/start`, { method: 'POST' });
   if (!response.ok) throw new Error('Failed to start container');
 };
 
 export const stopContainer = async (id: string) => {
-  const response = await fetch(`/api/containers/${id}/stop`, { method: 'POST' });
+  const response = await fetchWithAuth(`/api/containers/${id}/stop`, { method: 'POST' });
   if (!response.ok) throw new Error('Failed to stop container');
 };
 
 export const restartContainer = async (id: string) => {
-  const response = await fetch(`/api/containers/${id}/restart`, { method: 'POST' });
+  const response = await fetchWithAuth(`/api/containers/${id}/restart`, { method: 'POST' });
   if (!response.ok) throw new Error('Failed to restart container');
 };
 
 export const removeContainer = async (id: string) => {
-  const response = await fetch(`/api/containers/${id}`, { method: 'DELETE' });
+  const response = await fetchWithAuth(`/api/containers/${id}`, { method: 'DELETE' });
   if (!response.ok) throw new Error('Failed to remove container');
+};
+
+export const checkAuthStatus = async (): Promise<{ needsSetup: boolean }> => {
+  const response = await fetch('/api/auth/status');
+  if (!response.ok) throw new Error('Failed to check auth status');
+  return response.json();
+};
+
+export const setupUser = async (credentials: any): Promise<{ token: string }> => {
+  const response = await fetch('/api/auth/setup', {
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json' },
+    body: JSON.stringify(credentials),
+  });
+  if (!response.ok) throw new Error('Setup failed');
+  return response.json();
+};
+
+export const loginUser = async (credentials: any): Promise<{ token: string }> => {
+  const response = await fetch('/api/auth/login', {
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json' },
+    body: JSON.stringify(credentials),
+  });
+  if (!response.ok) throw new Error('Login failed');
+  return response.json();
 };

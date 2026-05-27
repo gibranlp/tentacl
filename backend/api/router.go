@@ -6,41 +6,65 @@ import (
 	"strings"
 
 	"github.com/docker/docker/client"
+	"github.com/gibranlp/tentacl/backend/db"
 	"github.com/gibranlp/tentacl/backend/handlers"
+	echojwt "github.com/labstack/echo-jwt/v4"
 	"github.com/labstack/echo/v4"
 )
 
 // RegisterRoutes registers all API routes
-func RegisterRoutes(e *echo.Echo, dockerClient *client.Client, staticFS http.FileSystem) {
+func RegisterRoutes(e *echo.Echo, dockerClient *client.Client, database *db.DB, staticFS http.FileSystem) {
 	containerHandler := &handlers.ContainerHandler{Docker: dockerClient}
 	imageHandler := &handlers.ImageHandler{Docker: dockerClient}
 	networkHandler := &handlers.NetworkHandler{Docker: dockerClient}
 	volumeHandler := &handlers.VolumeHandler{Docker: dockerClient}
 	hostHandler := &handlers.HostHandler{}
+	authHandler := &handlers.AuthHandler{DB: database}
 
+	// Public routes
 	e.GET("/health", func(c echo.Context) error {
 		return c.String(http.StatusOK, "Tentacl Active")
 	})
 
-	e.GET("/api/host/stats", hostHandler.Stats)
-	e.GET("/api/containers", containerHandler.List)
-	e.POST("/api/containers/:id/start", containerHandler.Start)
-	e.POST("/api/containers/:id/stop", containerHandler.Stop)
-	e.POST("/api/containers/:id/restart", containerHandler.Restart)
-	e.DELETE("/api/containers/:id", containerHandler.Remove)
+	authGroup := e.Group("/api/auth")
+	authGroup.GET("/status", authHandler.Status)
+	authGroup.POST("/setup", authHandler.Setup)
+	authGroup.POST("/login", authHandler.Login)
 
-	e.GET("/api/images", imageHandler.List)
-	e.DELETE("/api/images/:id", imageHandler.Remove)
-	e.GET("/api/images/:id", imageHandler.Inspect)
-	e.GET("/api/networks", networkHandler.List)
-	e.DELETE("/api/networks/:id", networkHandler.Remove)
-	e.GET("/api/networks/:id", networkHandler.Inspect)
-	e.GET("/api/volumes", volumeHandler.List)
-	e.DELETE("/api/volumes/:name", volumeHandler.Remove)
-	e.GET("/api/volumes/:name", volumeHandler.Inspect)
+	// Protected routes
+	apiGroup := e.Group("/api")
+	apiGroup.Use(echojwt.WithConfig(echojwt.Config{
+		SigningKey: handlers.JWTSecret,
+		Skipper: func(c echo.Context) bool {
+			// Skip JWT auth for public auth endpoints and WebSocket upgrade
+			path := c.Request().URL.Path
+			return strings.HasPrefix(path, "/api/auth/") || strings.HasSuffix(path, "/exec")
+		},
+	}))
 
-	e.GET("/api/containers/:id/logs", containerHandler.Logs)
-	e.GET("/api/containers/:id/inspect", containerHandler.Inspect)
+	apiGroup.POST("/users", authHandler.CreateUser)
+
+	apiGroup.GET("/host/stats", hostHandler.Stats)
+	apiGroup.GET("/containers", containerHandler.List)
+	apiGroup.POST("/containers/:id/start", containerHandler.Start)
+	apiGroup.POST("/containers/:id/stop", containerHandler.Stop)
+	apiGroup.POST("/containers/:id/restart", containerHandler.Restart)
+	apiGroup.DELETE("/containers/:id", containerHandler.Remove)
+
+	apiGroup.GET("/images", imageHandler.List)
+	apiGroup.DELETE("/images/:id", imageHandler.Remove)
+	apiGroup.GET("/images/:id", imageHandler.Inspect)
+	apiGroup.GET("/networks", networkHandler.List)
+	apiGroup.DELETE("/networks/:id", networkHandler.Remove)
+	apiGroup.GET("/networks/:id", networkHandler.Inspect)
+	apiGroup.GET("/volumes", volumeHandler.List)
+	apiGroup.DELETE("/volumes/:name", volumeHandler.Remove)
+	apiGroup.GET("/volumes/:name", volumeHandler.Inspect)
+
+	apiGroup.GET("/containers/:id/logs", containerHandler.Logs)
+	apiGroup.GET("/containers/:id/inspect", containerHandler.Inspect)
+
+	// Exec is handled in standard e router because WebSocket upgrade has issues with some middlewares
 	e.GET("/api/containers/:id/exec", containerHandler.Exec)
 
 	if staticFS != nil {

@@ -6,6 +6,7 @@ import (
 	"net/http"
 
 	"github.com/gibranlp/tentacl/backend/api"
+	"github.com/gibranlp/tentacl/backend/db"
 	"github.com/gibranlp/tentacl/backend/docker"
 	"github.com/labstack/echo/v4"
 )
@@ -22,13 +23,20 @@ func main() {
 
 	e := echo.New()
 
+	database, err := db.Init("data/tentacl.db")
+	if err != nil {
+		e.Logger.Warn("Failed to initialize database, auth may be unavailable: ", err)
+	} else {
+		defer database.Close()
+	}
+
 	distFS, err := fs.Sub(staticContent, "frontend/dist")
 	if err != nil {
 		panic(err)
 	}
 
 	// Register all routes
-	api.RegisterRoutes(e, cli, http.FS(distFS))
+	api.RegisterRoutes(e, cli, database, http.FS(distFS))
 
 	e.Logger.Fatal(e.Start(":8095"))
 }

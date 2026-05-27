@@ -1,13 +1,16 @@
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import { useQuery } from '@tanstack/react-query';
 import { Layout } from './components/Layout';
 import { ContainerTable } from './components/ContainerTable';
 import { ImageTable } from './components/ImageTable';
 import { NetworkTable } from './components/NetworkTable';
 import { VolumeTable } from './components/VolumeTable';
-import { fetchHostStats } from './api/client';
+import { fetchHostStats, checkAuthStatus } from './api/client';
+import { AuthProvider, useAuth } from './context/AuthContext';
+import { LoginView } from './views/LoginView';
+import { SetupView } from './views/SetupView';
 
-function App() {
+function Dashboard() {
   const [activeView, setActiveView] = useState('DASHBOARD');
 
   const { data: stats, isLoading: statsLoading } = useQuery({
@@ -37,25 +40,24 @@ function App() {
               <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
                 <div className="border border-terminal-dim p-4 bg-black/20">
                   <div className="text-xs text-gray-500 font-mono">CPU_USAGE</div>
-                  <div className={`text-2xl font-mono ${statsLoading ? 'animate-pulse' : 'text-terminal-fg'}`}>
+                  <div className={`text-2xl font-mono ${statsLoading ? 'animate-pulse text-terminal-accent' : 'text-terminal-fg'}`}>
                     {statsLoading ? 'FETCHING...' : `${stats?.cpuPercent.toFixed(1)}%`}
                   </div>
                 </div>
                 <div className="border border-terminal-dim p-4 bg-black/20">
                   <div className="text-xs text-gray-500 font-mono">MEM_USAGE</div>
-                  <div className={`text-2xl font-mono ${statsLoading ? 'animate-pulse' : 'text-terminal-fg'}`}>
+                  <div className={`text-2xl font-mono ${statsLoading ? 'animate-pulse text-terminal-accent' : 'text-terminal-fg'}`}>
                     {statsLoading ? 'FETCHING...' : `${formatBytes(stats?.memUsed || 0)} / ${formatBytes(stats?.memTotal || 0)}`}
                   </div>
                 </div>
                 <div className="border border-terminal-dim p-4 bg-black/20">
                   <div className="text-xs text-gray-500 font-mono">UPTIME</div>
-                  <div className={`text-2xl font-mono ${statsLoading ? 'animate-pulse' : 'text-terminal-fg'}`}>
+                  <div className={`text-2xl font-mono ${statsLoading ? 'animate-pulse text-terminal-accent' : 'text-terminal-fg'}`}>
                     {statsLoading ? 'FETCHING...' : formatUptime(stats?.uptime || 0)}
                   </div>
                 </div>
               </div>
             </section>
-...
 
             <section className="space-y-4">
               <h2 className="text-white border-b border-terminal-dim pb-2 font-mono">{'>'} RECENT_CONTAINERS</h2>
@@ -100,6 +102,46 @@ function App() {
     <Layout activeView={activeView} onViewChange={setActiveView}>
       {renderContent()}
     </Layout>
+  );
+}
+
+const AppRouter = () => {
+  const { isAuthenticated } = useAuth();
+  const [needsSetup, setNeedsSetup] = useState<boolean | null>(null);
+
+  useEffect(() => {
+    const checkSetup = async () => {
+      try {
+        const status = await checkAuthStatus();
+        setNeedsSetup(status.needsSetup);
+      } catch (err) {
+        console.error("Failed to check auth status", err);
+        setNeedsSetup(false); // Assume it doesn't need setup if it fails
+      }
+    };
+    checkSetup();
+  }, []);
+
+  if (needsSetup === null) {
+    return <div className="min-h-screen bg-terminal-bg flex items-center justify-center text-terminal-accent font-mono animate-pulse">INIT_SYSTEM...</div>;
+  }
+
+  if (needsSetup) {
+    return <SetupView />;
+  }
+
+  if (!isAuthenticated) {
+    return <LoginView />;
+  }
+
+  return <Dashboard />;
+};
+
+function App() {
+  return (
+    <AuthProvider>
+      <AppRouter />
+    </AuthProvider>
   );
 }
 
