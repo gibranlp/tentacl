@@ -37,5 +37,5 @@ To be tackled tomorrow:
 - [x] Mobile responsiveness polish for the terminal and split-pane views.
 
 ### 4. Admin Management
-- [ ] Add a "Settings" view to manage admin passwords and create additional users.
+- [x] Add a "Settings" view to manage admin passwords and create additional users.
 

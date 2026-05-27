@@ -30,8 +30,8 @@ type DB struct {
 type User struct {
 	Username string `json:"username"`
 	Password string `json:"password,omitempty"`
-	Role     string `json:"role"`
 }
+
 func Init(path string) (*DB, error) {
 	if err := os.MkdirAll(filepath.Dir(path), 0700); err != nil {
 		return nil, err
@@ -105,11 +105,7 @@ func (d *DB) HasUsers() (bool, error) {
 	return hasUsers, err
 }
 
-func (d *DB) CreateUser(username, password, role string) error {
-	if role == "" {
-		role = "admin"
-	}
-	
+func (d *DB) CreateUser(username, password string) error {
 	hashedPassword, err := bcrypt.GenerateFromPassword([]byte(password), bcrypt.DefaultCost)
 	if err != nil {
 		return err
@@ -118,7 +114,6 @@ func (d *DB) CreateUser(username, password, role string) error {
 	user := User{
 		Username: username,
 		Password: string(hashedPassword),
-		Role:     role,
 	}
 
 	userData, err := json.Marshal(user)

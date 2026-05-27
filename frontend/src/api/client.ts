@@ -34,11 +34,24 @@ export interface Volume {
   Mountpoint: string;
 }
 
+export interface ContainerStats {
+  id: string;
+  name: string;
+  cpu: number;
+  memory: number;
+  netIn: number;
+  netOut: number;
+  status: string;
+}
+
 export interface HostStats {
   cpuPercent: number;
   memUsed: number;
   memTotal: number;
   uptime: number;
+  netIn: number;
+  netOut: number;
+  containers: ContainerStats[];
 }
 
 export const fetchWithAuth = async (url: string, options: RequestInit = {}) => {

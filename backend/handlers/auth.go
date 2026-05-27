@@ -18,7 +18,6 @@ type AuthHandler struct {
 type AuthRequest struct {
 	Username string `json:"username"`
 	Password string `json:"password"`
-	Role     string `json:"role"`
 }
 
 type ChangePasswordRequest struct {
@@ -64,7 +63,7 @@ func (h *AuthHandler) Setup(c echo.Context) error {
 		return c.JSON(http.StatusBadRequest, map[string]string{"error": "Username and password required"})
 	}
 
-	if err := h.DB.CreateUser(req.Username, req.Password, "admin"); err != nil {
+	if err := h.DB.CreateUser(req.Username, req.Password); err != nil {
 		c.Logger().Error("Setup CreateUser error: ", err)
 		return c.JSON(http.StatusInternalServerError, map[string]string{"error": "Failed to create user: " + err.Error()})
 	}
@@ -104,7 +103,7 @@ func (h *AuthHandler) CreateUser(c echo.Context) error {
 		return c.JSON(http.StatusBadRequest, map[string]string{"error": "Username and password required"})
 	}
 
-	if err := h.DB.CreateUser(req.Username, req.Password, req.Role); err != nil {
+	if err := h.DB.CreateUser(req.Username, req.Password); err != nil {
 		return c.JSON(http.StatusInternalServerError, map[string]string{"error": err.Error()})
 	}
 
@@ -152,7 +151,6 @@ func (h *AuthHandler) ChangePassword(c echo.Context) error {
 func (h *AuthHandler) generateTokenResponse(c echo.Context, user *db.User) error {
 	token := jwt.NewWithClaims(jwt.SigningMethodHS256, jwt.MapClaims{
 		"username": user.Username,
-		"role":     user.Role,
 		"exp":      time.Now().Add(time.Hour * 72).Unix(),
 	})
 

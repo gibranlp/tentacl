@@ -6,11 +6,9 @@ import { executeBulkAction } from '../utils/bulkActions';
 import type { Container } from '../api/client';
 import { ContainerDetails } from './ContainerDetails';
 import { useNotification } from '../context/NotificationContext';
-import { useAuth } from '../context/AuthContext';
 
 export const ContainerTable = () => {
   const queryClient = useQueryClient();
-  const { role } = useAuth();
   const { notify } = useNotification();
   const [selectedIds, setSelectedIds] = useState<Set<string>>(new Set());
   const [detailView, setDetailView] = useState<{ container: Container, tab: 'LOGS' | 'INSPECT' | 'TERMINAL' } | null>(null);
@@ -83,7 +81,7 @@ export const ContainerTable = () => {
         <div className="overflow-x-auto border border-terminal-dim/50 rounded-lg">
           <table className="w-full text-left border-collapse">
             <thead>
-              {selectedIds.size > 0 && role === 'admin' ? (
+              {selectedIds.size > 0 ? (
                 <tr className="border-b border-terminal-dim text-xs font-mono bg-terminal-accent text-black">
                   <th className="py-2 px-3 w-8">
                     <input type="checkbox" checked={true} onChange={() => setSelectedIds(new Set())} className="accent-black" />
@@ -113,15 +111,13 @@ export const ContainerTable = () => {
                 </tr>
               ) : (
                 <tr className="border-b border-terminal-dim text-xs text-gray-500 font-mono bg-terminal-dim/5">
-                  {role === 'admin' && (
-                    <th className="py-2 px-3 w-8">
-                      <input type="checkbox" checked={selectedIds.size === containers?.length && containers?.length > 0} onChange={toggleSelectAll} className="accent-terminal-accent" />
-                    </th>
-                  )}
+                  <th className="py-2 px-3 w-8">
+                    <input type="checkbox" checked={selectedIds.size === containers?.length && containers?.length > 0} onChange={toggleSelectAll} className="accent-terminal-accent" />
+                  </th>
                   <th className="py-2 px-3">ID</th>
                   <th className="py-2 px-3">NAME</th>
                   <th className="py-2 px-3">STATUS</th>
-                  {role === 'admin' && <th className="py-2 px-3 text-right">ACTIONS</th>}
+                  <th className="py-2 px-3 text-right">ACTIONS</th>
                 </tr>
               )}
             </thead>
@@ -132,11 +128,9 @@ export const ContainerTable = () => {
                   onClick={() => setDetailView({ container: c, tab: 'LOGS' })}
                   className={`border-b border-terminal-dim hover:bg-terminal-dim/30 group transition-colors cursor-pointer ${detailView?.container.Id === c.Id ? 'bg-terminal-dim/40' : ''}`}
                 >
-                  {role === 'admin' && (
-                    <td className="py-3 px-3" onClick={(e) => e.stopPropagation()}>
-                      <input type="checkbox" checked={selectedIds.has(c.Id)} onChange={() => toggleSelect(c.Id)} className="accent-terminal-accent" />
-                    </td>
-                  )}
+                  <td className="py-3 px-3" onClick={(e) => e.stopPropagation()}>
+                    <input type="checkbox" checked={selectedIds.has(c.Id)} onChange={() => toggleSelect(c.Id)} className="accent-terminal-accent" />
+                  </td>
                   <td className="py-3 px-3 font-mono text-terminal-accent">{c.Id.substring(0, 12)}</td>
                   <td className="py-3 px-3 text-white truncate max-w-[150px]">{c.Names[0]?.replace('/', '') || 'N/A'}</td>
                   <td className="py-3 px-3">
@@ -144,9 +138,8 @@ export const ContainerTable = () => {
                       [{c.State.toUpperCase()}]
                     </span>
                   </td>
-                  {role === 'admin' && (
-                    <td className="py-3 px-3 text-right" onClick={(e) => e.stopPropagation()}>
-                      <div className="flex justify-end space-x-2">
+                  <td className="py-3 px-3 text-right" onClick={(e) => e.stopPropagation()}>
+                    <div className="flex justify-end space-x-2">
                         <button
                           onClick={() => setDetailView({ container: c, tab: 'LOGS' })}
                           className="p-1 hover:text-terminal-accent transition-colors"
@@ -211,7 +204,6 @@ export const ContainerTable = () => {
                         </button>
                       </div>
                     </td>
-                  )}
                 </tr>
               ))}
               {containers?.length === 0 && (

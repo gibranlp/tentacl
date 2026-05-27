@@ -15,7 +15,6 @@ import { SetupView } from './views/SetupView';
 import { SettingsView } from './views/SettingsView';
 
 function Dashboard() {
-  const { role } = useAuth();
   const [activeView, setActiveView] = useState('DASHBOARD');
   const [isWizardOpen, setIsWizardOpen] = useState(false);
 
@@ -33,7 +32,11 @@ function Dashboard() {
   };
 
   const formatBytes = (bytes: number) => {
-    return (bytes / (1024 * 1024 * 1024)).toFixed(1) + ' GB';
+    if (bytes === 0) return '0 B';
+    const k = 1024;
+    const sizes = ['B', 'KB', 'MB', 'GB', 'TB'];
+    const i = Math.floor(Math.log(bytes) / Math.log(k));
+    return parseFloat((bytes / Math.pow(k, i)).toFixed(2)) + ' ' + sizes[i];
   };
 
   const renderContent = () => {
@@ -43,7 +46,7 @@ function Dashboard() {
           <div className="space-y-8 animate-in fade-in duration-500">
             <section className="space-y-4">
               <h2 className="text-white border-b border-terminal-dim pb-2 font-mono">{'>'} SYSTEM_OVERVIEW</h2>
-              <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+              <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
                 <div className="border border-terminal-dim p-4 bg-black/20">
                   <div className="text-xs text-gray-500 font-mono">CPU_USAGE</div>
                   <div className={`text-2xl font-mono ${statsLoading ? 'animate-pulse text-terminal-accent' : 'text-terminal-fg'}`}>
@@ -57,10 +60,65 @@ function Dashboard() {
                   </div>
                 </div>
                 <div className="border border-terminal-dim p-4 bg-black/20">
+                  <div className="text-xs text-gray-500 font-mono">NETWORK_IO</div>
+                  <div className={`text-xl font-mono ${statsLoading ? 'animate-pulse text-terminal-accent' : 'text-terminal-fg'}`}>
+                    {statsLoading ? 'FETCHING...' : (
+                      <div className="flex flex-col">
+                        <span className="text-xs text-green-500">IN: {formatBytes(stats?.netIn || 0)}</span>
+                        <span className="text-xs text-blue-500">OUT: {formatBytes(stats?.netOut || 0)}</span>
+                      </div>
+                    )}
+                  </div>
+                </div>
+                <div className="border border-terminal-dim p-4 bg-black/20">
                   <div className="text-xs text-gray-500 font-mono">UPTIME</div>
                   <div className={`text-2xl font-mono ${statsLoading ? 'animate-pulse text-terminal-accent' : 'text-terminal-fg'}`}>
                     {statsLoading ? 'FETCHING...' : formatUptime(stats?.uptime || 0)}
                   </div>
+                </div>
+              </div>
+            </section>
+
+            <section className="space-y-4">
+              <h2 className="text-white border-b border-terminal-dim pb-2 font-mono">{'>'} CONTAINER_RESOURCE_USAGE</h2>
+              <div className="border border-terminal-dim/50 rounded-lg overflow-hidden">
+                <div className="max-h-[300px] overflow-y-auto scrollbar-thin scrollbar-thumb-terminal-dim">
+                  <table className="w-full text-left border-collapse font-mono text-xs">
+                    <thead className="sticky top-0 bg-black border-b border-terminal-dim z-10">
+                      <tr className="text-gray-500">
+                        <th className="p-3">NAME</th>
+                        <th className="p-3">CPU</th>
+                        <th className="p-3">MEM</th>
+                        <th className="p-3">NET_IO</th>
+                        <th className="p-3">STATUS</th>
+                      </tr>
+                    </thead>
+                    <tbody>
+                      {statsLoading ? (
+                        <tr><td colSpan={5} className="p-4 text-center animate-pulse text-terminal-accent">FETCHING_RESOURCE_STATS...</td></tr>
+                      ) : stats?.containers?.map((c) => (
+                        <tr key={c.id} className="border-b border-terminal-dim/30 hover:bg-terminal-dim/10">
+                          <td className="p-3 text-terminal-accent">{c.name}</td>
+                          <td className="p-3">{c.cpu.toFixed(2)}%</td>
+                          <td className="p-3">{formatBytes(c.memory)}</td>
+                          <td className="p-3">
+                            <div className="flex flex-col text-[10px]">
+                              <span className="text-green-500">↓ {formatBytes(c.netIn)}</span>
+                              <span className="text-blue-500">↑ {formatBytes(c.netOut)}</span>
+                            </div>
+                          </td>
+                          <td className="p-3">
+                            <span className={c.status === 'running' ? 'text-terminal-fg' : 'text-terminal-danger'}>
+                              {c.status.toUpperCase()}
+                            </span>
+                          </td>
+                        </tr>
+                      ))}
+                      {stats?.containers?.length === 0 && (
+                        <tr><td colSpan={5} className="p-4 text-center text-gray-600">NO_RUNNING_CONTAINERS</td></tr>
+                      )}
+                    </tbody>
+                  </table>
                 </div>
               </div>
             </section>
@@ -115,14 +173,12 @@ function Dashboard() {
   return (
     <Layout activeView={activeView} onViewChange={setActiveView}>
       {renderContent()}
-      {role === 'admin' && (
-        <button 
-          onClick={() => setIsWizardOpen(true)}
-          className="fixed bottom-8 right-8 bg-terminal-accent text-black font-bold p-4 rounded-full font-mono shadow-2xl hover:scale-110 transition-transform"
-        >
-          +
-        </button>
-      )}
+      <button 
+        onClick={() => setIsWizardOpen(true)}
+        className="fixed bottom-8 right-8 bg-terminal-accent text-black font-bold p-4 rounded-full font-mono shadow-2xl hover:scale-110 transition-transform"
+      >
+        +
+      </button>
       <WizardProvider>
         <CreateResourceWizard isOpen={isWizardOpen} onClose={() => setIsWizardOpen(false)} />
       </WizardProvider>

@@ -3,7 +3,6 @@ import type { ReactNode } from 'react';
 
 interface AuthContextType {
   token: string | null;
-  role: string | null;
   isAuthenticated: boolean;
   login: (token: string) => void;
   logout: () => void;
@@ -11,26 +10,14 @@ interface AuthContextType {
 
 const AuthContext = createContext<AuthContextType | undefined>(undefined);
 
-const getRoleFromToken = (token: string | null): string | null => {
-  if (!token) return null;
-  try {
-    const payload = JSON.parse(atob(token.split('.')[1]));
-    return payload.role || null;
-  } catch (e) {
-    return null;
-  }
-};
-
 export const AuthProvider = ({ children }: { children: ReactNode }) => {
   const [token, setToken] = useState<string | null>(localStorage.getItem('tentacl_token'));
-  const [role, setRole] = useState<string | null>(getRoleFromToken(token));
 
   // Sync state if localStorage changes from another tab/window
   useEffect(() => {
     const handleStorageChange = () => {
       const newToken = localStorage.getItem('tentacl_token');
       setToken(newToken);
-      setRole(getRoleFromToken(newToken));
     };
     window.addEventListener('storage', handleStorageChange);
     return () => window.removeEventListener('storage', handleStorageChange);
@@ -39,10 +26,8 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
   useEffect(() => {
     if (token) {
       localStorage.setItem('tentacl_token', token);
-      setRole(getRoleFromToken(token));
     } else {
       localStorage.removeItem('tentacl_token');
-      setRole(null);
     }
   }, [token]);
 
@@ -57,7 +42,7 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
   };
 
   return (
-    <AuthContext.Provider value={{ token, role, isAuthenticated: !!token, login, logout }}>
+    <AuthContext.Provider value={{ token, isAuthenticated: !!token, login, logout }}>
       {children}
     </AuthContext.Provider>
   );

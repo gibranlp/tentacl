@@ -5,11 +5,9 @@ import { fetchImages, removeImage, fetchImageInspect, pullImage } from '../api/c
 import type { DockerImage } from '../api/client';
 import { ResourceInspector } from './ResourceInspector';
 import { useNotification } from '../context/NotificationContext';
-import { useAuth } from '../context/AuthContext';
 
 export const ImageTable = () => {
   const queryClient = useQueryClient();
-  const { role } = useAuth();
   const { notify } = useNotification();
   const [selectedImage, setSelectedImage] = useState<DockerImage | null>(null);
   const [imageName, setImageName] = useState('');
@@ -53,24 +51,22 @@ export const ImageTable = () => {
       <div className={`${selectedImage ? 'lg:w-1/2' : 'w-full'}`}>
         <div className="flex justify-between items-center mb-4">
           <h3 className="text-white font-mono">{'>'} IMAGE_LIST</h3>
-          {role === 'admin' && (
-            <div className="flex space-x-2">
-              <input 
-                type="text" 
-                value={imageName}
-                onChange={(e) => setImageName(e.target.value)}
-                placeholder="e.g. nginx:latest"
-                className="bg-black border border-terminal-dim p-1 px-2 text-terminal-fg font-mono text-sm focus:outline-none focus:border-terminal-accent"
-              />
-              <button 
-                onClick={() => pullMutation.mutate(imageName)}
-                disabled={pullMutation.isPending || !imageName}
-                className="bg-terminal-accent text-black p-1 px-3 font-bold hover:bg-white transition-colors disabled:opacity-50"
-              >
-                <Download size={16} />
-              </button>
-            </div>
-          )}
+          <div className="flex space-x-2">
+            <input 
+              type="text" 
+              value={imageName}
+              onChange={(e) => setImageName(e.target.value)}
+              placeholder="e.g. nginx:latest"
+              className="bg-black border border-terminal-dim p-1 px-2 text-terminal-fg font-mono text-sm focus:outline-none focus:border-terminal-accent"
+            />
+            <button 
+              onClick={() => pullMutation.mutate(imageName)}
+              disabled={pullMutation.isPending || !imageName}
+              className="bg-terminal-accent text-black p-1 px-3 font-bold hover:bg-white transition-colors disabled:opacity-50"
+            >
+              <Download size={16} />
+            </button>
+          </div>
         </div>
         <div className="overflow-x-auto border border-terminal-dim/50 rounded-lg">
           <table className="w-full text-left border-collapse">

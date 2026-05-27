@@ -2,7 +2,6 @@ import { fetchWithAuth } from './client';
 
 export interface User {
   username: string;
-  role: 'admin' | 'readonly';
 }
 
 export const fetchUsers = async (): Promise<User[]> => {
