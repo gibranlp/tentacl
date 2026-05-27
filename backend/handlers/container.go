@@ -115,16 +115,29 @@ func (h *ContainerHandler) Logs(c echo.Context) error {
 	}
 
 	return nil
-}
+	}
 
-func (h *ContainerHandler) Inspect(c echo.Context) error {
+	func (h *ContainerHandler) Inspect(c echo.Context) error {
 	id := c.Param("id")
 	inspect, err := h.Docker.ContainerInspect(c.Request().Context(), id)
 	if err != nil {
 		return c.JSON(http.StatusInternalServerError, map[string]string{"error": err.Error()})
 	}
 	return c.JSON(http.StatusOK, inspect)
+	}
+
+	func (h *ContainerHandler) Create(c echo.Context) error {
+
+	var body map[string]interface{}
+	if err := c.Bind(&body); err != nil {
+		return c.JSON(http.StatusBadRequest, map[string]string{"error": "Invalid request"})
+	}
+
+	// This is a placeholder for the actual container creation logic
+	// We'll need to parse the body into container.Config and container.HostConfig
+	return c.JSON(http.StatusCreated, map[string]string{"message": "Container deployment started"})
 }
+
 
 func (h *ContainerHandler) Exec(c echo.Context) error {
 	id := c.Param("id")
