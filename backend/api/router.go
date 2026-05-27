@@ -41,6 +41,7 @@ func RegisterRoutes(e *echo.Echo, dockerClient *client.Client, staticFS http.Fil
 
 	e.GET("/api/containers/:id/logs", containerHandler.Logs)
 	e.GET("/api/containers/:id/inspect", containerHandler.Inspect)
+	e.GET("/api/containers/:id/exec", containerHandler.Exec)
 
 	if staticFS != nil {
 		e.GET("/*", func(c echo.Context) error {

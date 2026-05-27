@@ -7,8 +7,15 @@ import (
 	"github.com/docker/docker/api/types/container"
 	"github.com/docker/docker/client"
 	"github.com/docker/docker/pkg/stdcopy"
+	"github.com/gorilla/websocket"
 	"github.com/labstack/echo/v4"
 )
+
+var upgrader = websocket.Upgrader{
+	CheckOrigin: func(r *http.Request) bool {
+		return true // Allow all origins for simplicity in this tool
+	},
+}
 
 // flushWriter wraps an io.Writer and an http.Flusher to ensure data is sent immediately.
 type flushWriter struct {
@@ -117,4 +124,68 @@ func (h *ContainerHandler) Inspect(c echo.Context) error {
 		return c.JSON(http.StatusInternalServerError, map[string]string{"error": err.Error()})
 	}
 	return c.JSON(http.StatusOK, inspect)
+}
+
+func (h *ContainerHandler) Exec(c echo.Context) error {
+	id := c.Param("id")
+
+	ws, err := upgrader.Upgrade(c.Response(), c.Request(), nil)
+	if err != nil {
+		return err
+	}
+	defer ws.Close()
+
+	ctx := c.Request().Context()
+
+	execConfig := container.ExecOptions{
+		AttachStdin:  true,
+		AttachStdout: true,
+		AttachStderr: true,
+		Tty:          true,
+		Cmd:          []string{"sh", "-c", "bash || sh"},
+	}
+
+	execCreateRes, err := h.Docker.ContainerExecCreate(ctx, id, execConfig)
+	if err != nil {
+		ws.WriteMessage(websocket.TextMessage, []byte("Failed to create exec instance: "+err.Error()))
+		return nil
+	}
+
+	execAttachConfig := container.ExecAttachOptions{
+		Tty: true,
+	}
+
+	resp, err := h.Docker.ContainerExecAttach(ctx, execCreateRes.ID, execAttachConfig)
+	if err != nil {
+		ws.WriteMessage(websocket.TextMessage, []byte("Failed to attach to exec instance: "+err.Error()))
+		return nil
+	}
+	defer resp.Close()
+
+	// Read from WS and write to Docker
+	go func() {
+		for {
+			_, msg, err := ws.ReadMessage()
+			if err != nil {
+				break
+			}
+			_, _ = resp.Conn.Write(msg)
+		}
+	}()
+
+	// Read from Docker and write to WS
+	buf := make([]byte, 8192)
+	for {
+		n, err := resp.Reader.Read(buf)
+		if n > 0 {
+			if writeErr := ws.WriteMessage(websocket.TextMessage, buf[:n]); writeErr != nil {
+				break
+			}
+		}
+		if err != nil {
+			break
+		}
+	}
+
+	return nil
 }

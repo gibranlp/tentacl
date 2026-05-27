@@ -1,13 +1,13 @@
 import { useState } from 'react';
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
-import { Play, Square, RotateCw, Trash2, FileText, Info } from 'lucide-react';
+import { Play, Square, RotateCw, Trash2, FileText, Info, TerminalSquare } from 'lucide-react';
 import { fetchContainers, startContainer, stopContainer, restartContainer, removeContainer } from '../api/client';
 import type { Container } from '../api/client';
 import { ContainerDetails } from './ContainerDetails';
 
 export const ContainerTable = () => {
   const queryClient = useQueryClient();
-  const [detailView, setDetailView] = useState<{ container: Container, tab: 'LOGS' | 'INSPECT' } | null>(null);
+  const [detailView, setDetailView] = useState<{ container: Container, tab: 'LOGS' | 'INSPECT' | 'TERMINAL' } | null>(null);
   const { data: containers, isLoading, error } = useQuery({
     queryKey: ['containers'],
     queryFn: fetchContainers,
@@ -68,6 +68,15 @@ export const ContainerTable = () => {
                       >
                         <Info size={16} />
                       </button>
+                      {c.State === 'running' && (
+                        <button
+                          onClick={() => setDetailView({ container: c, tab: 'TERMINAL' })}
+                          className="p-1 hover:text-terminal-accent transition-colors"
+                          title="Open Terminal"
+                        >
+                          <TerminalSquare size={16} />
+                        </button>
+                      )}
                       {c.State !== 'running' ? (
                         <button
                           onClick={() => startMutation.mutate(c.Id)}

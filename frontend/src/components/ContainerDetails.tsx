@@ -1,17 +1,18 @@
 import { useState } from 'react';
-import { X, Terminal as TerminalIcon, Info } from 'lucide-react';
+import { X, Terminal as TerminalIcon, Info, TerminalSquare } from 'lucide-react';
 import { LogViewer } from './LogViewer';
 import { InspectViewer } from './InspectViewer';
+import { TerminalViewer } from './TerminalViewer';
 
 interface ContainerDetailsProps {
   containerId: string;
   containerName: string;
   onClose: () => void;
-  initialTab?: 'LOGS' | 'INSPECT';
+  initialTab?: 'LOGS' | 'INSPECT' | 'TERMINAL';
 }
 
 export const ContainerDetails = ({ containerId, containerName, onClose, initialTab = 'LOGS' }: ContainerDetailsProps) => {
-  const [activeTab, setActiveTab] = useState<'LOGS' | 'INSPECT'>(initialTab);
+  const [activeTab, setActiveTab] = useState<'LOGS' | 'INSPECT' | 'TERMINAL'>(initialTab);
 
   return (
     <div className="flex flex-col h-full bg-black border border-terminal-dim rounded-lg overflow-hidden shadow-2xl">
@@ -39,6 +40,17 @@ export const ContainerDetails = ({ containerId, containerName, onClose, initialT
             <Info size={14} />
             <span className="text-[10px] font-mono font-bold tracking-widest">INSPECT</span>
           </button>
+          <button
+            onClick={() => setActiveTab('TERMINAL')}
+            className={`flex items-center space-x-2 px-4 py-2 border-t border-x rounded-t-md transition-colors ${
+              activeTab === 'TERMINAL'
+                ? 'border-terminal-dim bg-black text-terminal-accent'
+                : 'border-transparent text-gray-500 hover:text-gray-300'
+            }`}
+          >
+            <TerminalSquare size={14} />
+            <span className="text-[10px] font-mono font-bold tracking-widest">EXEC</span>
+          </button>
         </div>
         <button onClick={onClose} className="p-2 text-gray-500 hover:text-white transition-colors">
           <X size={16} />
@@ -47,15 +59,23 @@ export const ContainerDetails = ({ containerId, containerName, onClose, initialT
 
       <div className="flex-1 overflow-hidden relative">
         <div className="absolute inset-0">
-          {activeTab === 'LOGS' ? (
+          {activeTab === 'LOGS' && (
             <LogViewer 
               containerId={containerId} 
               containerName={containerName} 
               onClose={onClose} 
               embedded // Added to tell LogViewer not to render its own header
             />
-          ) : (
+          )}
+          {activeTab === 'INSPECT' && (
             <InspectViewer containerId={containerId} />
+          )}
+          {activeTab === 'TERMINAL' && (
+            <TerminalViewer 
+              containerId={containerId} 
+              containerName={containerName} 
+              onClose={() => setActiveTab('LOGS')} 
+            />
           )}
         </div>
       </div>
