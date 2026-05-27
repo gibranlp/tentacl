@@ -1,0 +1,51 @@
+<h2>Tentacl Frontend Design Summary</h2>
+<p class="subtitle">Finalizing the Phase 2 specification.</p>
+
+<div class="section">
+  <h3>Confirmed UX/UI</h3>
+  <ul>
+    <li><strong>Layout:</strong> Fixed Classic Sidebar (Left).</li>
+    <li><strong>Details:</strong> Split Pane (Side-by-side or Top-Bottom) for logs/stats.</li>
+    <li><strong>Visuals:</strong> Terminal/Dark. Neon green status, monospace fonts.</li>
+    <li><strong>Credit:</strong> "creator: gibranlp" in sidebar footer.</li>
+  </ul>
+</div>
+
+<div class="section">
+  <h3>Frontend Tech Stack</h3>
+  <div class="cards">
+    <div class="card selected">
+      <div class="card-body">
+        <h3>Vite + React (TS)</h3>
+        <p>Fast development, type-safe components.</p>
+      </div>
+    </div>
+    <div class="card selected">
+      <div class="card-body">
+        <h3>Tailwind CSS</h3>
+        <p>Utility-first styling for the custom terminal theme.</p>
+      </div>
+    </div>
+    <div class="card selected">
+      <div class="card-body">
+        <h3>TanStack Query</h3>
+        <p>Efficient API data fetching and caching (Containers/Images).</p>
+      </div>
+    </div>
+  </div>
+</div>
+
+<div class="section">
+  <h3>Implementation Strategy</h3>
+  <div class="pros">
+    <h4>Phased Approach</h4>
+    <ul>
+      <li>1. Scaffold Vite project in <code>frontend/</code>.</li>
+      <li>2. Setup Tailwind + Terminal Theme colors/fonts.</li>
+      <li>3. Build Layout components (Sidebar, Split Pane).</li>
+      <li>4. Connect to Backend API (<code>/api/containers</code>).</li>
+    </ul>
+  </div>
+</div>
+
+<p>Frontend design complete. Ready for the implementation plan? http://localhost:53044</p>

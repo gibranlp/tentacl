@@ -1,5 +1,3 @@
-import { useState } from 'react';
-
 interface WizardProps {
   isOpen: boolean;
   onClose: () => void;

@@ -5,11 +5,9 @@ import { fetchVolumes, removeVolume, fetchVolumeInspect } from '../api/client';
 import type { Volume } from '../api/client';
 import { ResourceInspector } from './ResourceInspector';
 import { useNotification } from '../context/NotificationContext';
-import { useAuth } from '../context/AuthContext';
 
 export const VolumeTable = () => {
   const queryClient = useQueryClient();
-  const { role } = useAuth();
   const { notify } = useNotification();
   const [selectedVolume, setSelectedVolume] = useState<Volume | null>(null);
   const { data: volumes, isLoading, error } = useQuery({

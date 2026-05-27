@@ -1,0 +1,61 @@
+<h2>Tentacl Design Summary</h2>
+<p class="subtitle">Confirming the final blueprint for Tentacl.</p>
+
+<div class="section">
+  <h3>Project Core</h3>
+  <ul>
+    <li><strong>Identity:</strong> Tentacl - Unlimited, License-free Docker Manager.</li>
+    <li><strong>Focus:</strong> Local VPS Management (Unix Socket integration).</li>
+    <li><strong>Aesthetic:</strong> Terminal/Dark Mode. Monospace, high-contrast, "Hacker" vibe.</li>
+  </ul>
+</div>
+
+<div class="section">
+  <h3>Technical Stack</h3>
+  <div class="cards">
+    <div class="card selected">
+      <div class="card-body">
+        <h3>Backend: Go</h3>
+        <p>Direct Docker SDK usage. REST API. Single static binary output.</p>
+      </div>
+    </div>
+    <div class="card selected">
+      <div class="card-body">
+        <h3>Frontend: React</h3>
+        <p>Tailwind CSS (Dark theme). TypeScript. Vite/Esbuild for speed.</p>
+      </div>
+    </div>
+    <div class="card selected">
+      <div class="card-body">
+        <h3>DB: BoltDB</h3>
+        <p>Embedded K/V store. No external dependencies.</p>
+      </div>
+    </div>
+  </div>
+</div>
+
+<div class="section">
+  <h3>Feature Roadmap (MVP)</h3>
+  <div class="pros-cons">
+    <div class="pros">
+      <h4>Included</h4>
+      <ul>
+        <li>Container Lifecycle (Start/Stop/Logs)</li>
+        <li>Image Management (Pull/Remove)</li>
+        <li>Network Management (List/Create/Inspect)</li>
+        <li>Volume Tracking</li>
+        <li>Real-time Stats (CPU/MEM)</li>
+      </ul>
+    </div>
+    <div class="cons">
+      <h4>Out of Scope (For Now)</h4>
+      <ul>
+        <li>Remote Hosts (SSH/TLS)</li>
+        <li>User Role Permissions (RBAC)</li>
+        <li>Kubernetes Support</li>
+      </ul>
+    </div>
+  </div>
+</div>
+
+<p>Design complete. Ready to generate <code>start.md</code>? http://localhost:56166</p>

@@ -24,17 +24,17 @@ Create a license-free, lightweight Portainer alternative ("Tentacl") optimized f
 To be tackled tomorrow:
 
 ### 1. Resource Creation & Pulling
-- [ ] Add the ability to `docker pull` new images via the UI.
-- [ ] Create simple forms to instantiate new Networks and Volumes.
+- [x] Add the ability to `docker pull` new images via the UI.
+- [x] Create simple forms to instantiate new Networks and Volumes.
 
 ### 2. Container Creation (Advanced)
-- [ ] Design a wizard to deploy new containers from images (Ports, Env Vars, Volumes).
+- [x] Design a wizard to deploy new containers from images (Ports, Env Vars, Volumes).
 - [ ] Explore parsing basic `docker-compose.yml` strings to deploy stacks.
 
 ### 3. Bulk Actions & UX Polish
-- [ ] Add checkboxes to tables for bulk deletion/starting of resources.
-- [ ] Implement toast notifications for successful actions (e.g., "Container started successfully").
-- [ ] Mobile responsiveness polish for the terminal and split-pane views.
+- [x] Add checkboxes to tables for bulk deletion/starting of resources.
+- [x] Implement toast notifications for successful actions (e.g., "Container started successfully").
+- [x] Mobile responsiveness polish for the terminal and split-pane views.
 
 ### 4. Admin Management
 - [ ] Add a "Settings" view to manage admin passwords and create additional users.

@@ -19,10 +19,11 @@ export const TerminalViewer = ({ containerId, containerName, onClose }: Terminal
     if (!terminalRef.current) return;
 
     // Initialize xterm
+    const isMobile = window.innerWidth < 1024;
     const xterm = new Terminal({
       cursorBlink: true,
       fontFamily: 'JetBrains Mono, Fira Code, monospace',
-      fontSize: 12,
+      fontSize: isMobile ? 10 : 12,
       theme: {
         background: '#000000',
         foreground: '#00ff00',

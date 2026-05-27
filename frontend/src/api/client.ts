@@ -46,11 +46,13 @@ export const fetchWithAuth = async (url: string, options: RequestInit = {}) => {
   const headers = new Headers(options.headers || {});
   
   if (token) {
-    headers.set('Authorization', `Bearer ${token}`);
+    headers.set('Authorization', `Bearer ${token.trim()}`);
   }
 
   const response = await fetch(url, { ...options, headers });
+  
   if (response.status === 401) {
+    console.error('Unauthorized request to:', url, 'with token:', token ? 'PRESENT' : 'MISSING');
     localStorage.removeItem('tentacl_token');
     window.location.reload(); // Force re-auth
   }
@@ -164,6 +166,16 @@ export const setupUser = async (credentials: any): Promise<{ token: string }> =>
     const errorData = await response.json().catch(() => ({}));
     throw new Error(errorData.error || 'Setup failed');
   }
+  return response.json();
+};
+
+export const loginUser = async (credentials: any): Promise<{ token: string }> => {
+  const response = await fetch('/api/auth/login', {
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json' },
+    body: JSON.stringify(credentials),
+  });
+  if (!response.ok) throw new Error('Login failed');
   return response.json();
 };
 

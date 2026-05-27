@@ -9,7 +9,7 @@ interface LayoutProps {
 export const Layout = ({ children, activeView, onViewChange }: LayoutProps) => (
   <div className="flex h-screen bg-terminal-bg overflow-hidden text-terminal-fg font-mono">
     <Sidebar activeView={activeView} onViewChange={onViewChange} />
-    <main className="flex-1 overflow-auto p-6 relative">
+    <main className="flex-1 overflow-auto p-4 lg:p-6 relative">
       <div className="max-w-7xl mx-auto">
         {children}
       </div>

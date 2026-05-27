@@ -1,0 +1,55 @@
+<h2>Tentacl Feature Scope</h2>
+<p class="subtitle">Adding Network Management to the core feature set.</p>
+
+<div class="section">
+  <h3>Updated Phase 1 Features</h3>
+  <div class="cards">
+    <div class="card">
+      <div class="card-body">
+        <h3>Container Management</h3>
+        <p>List, Start, Stop, Restart, Remove, Logs, Stats.</p>
+      </div>
+    </div>
+    <div class="card">
+      <div class="card-body">
+        <h3>Image Management</h3>
+        <p>List, Pull, Push, Remove images.</p>
+      </div>
+    </div>
+    <div class="card selected">
+      <div class="card-body">
+        <h3>Network Management</h3>
+        <p>List, Create, Remove, Inspect networks. View which containers use which network.</p>
+      </div>
+    </div>
+    <div class="card">
+      <div class="card-body">
+        <h3>Volume Management</h3>
+        <p>List, Create, Remove volumes. Track disk usage.</p>
+      </div>
+    </div>
+  </div>
+</div>
+
+<div class="section">
+  <h3>Next Step: Infrastructure</h3>
+  <p>Should Tentacl support <strong>Remote Docker Hosts</strong> (managing other VPS from one UI) or focus on <strong>Local Docker</strong> (managing the VPS it's running on) first?</p>
+  <div class="options">
+    <div class="option" data-choice="local" onclick="toggleSelect(this)">
+      <div class="letter">L</div>
+      <div class="content">
+        <h3>Local Only (MVP)</h3>
+        <p>Simple setup. Connects to local unix socket. Fast development.</p>
+      </div>
+    </div>
+    <div class="option" data-choice="remote" onclick="toggleSelect(this)">
+      <div class="letter">R</div>
+      <div class="content">
+        <h3>Multi-Host Ready</h3>
+        <p>Architecture supports TLS/SSH connections to remote Docker engines from start.</p>
+      </div>
+    </div>
+  </div>
+</div>
+
+<p>Networks added. Check updated features: http://localhost:56166. Then answer: Start with local-only or multi-host?</p>

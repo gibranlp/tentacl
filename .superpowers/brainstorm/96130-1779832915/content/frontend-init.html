@@ -1,0 +1,59 @@
+<h2>Tentacl Frontend: Phase 2</h2>
+<p class="subtitle">Designing the "Terminal/Dark" Dashboard.</p>
+
+<div class="section">
+  <h3>Visual Direction: Terminal Aesthetic</h3>
+  <div class="mockup">
+    <div class="mockup-header">Tentacl v0.1.0 - [Containers]</div>
+    <div class="mockup-body" style="background: #000; color: #0f0; font-family: monospace; padding: 20px; min-height: 200px;">
+      <div style="display: flex;">
+        <div style="width: 200px; border-right: 1px solid #333; padding-right: 10px;">
+          <div style="color: #fff; margin-bottom: 10px;">> Dashboard</div>
+          <div style="margin-bottom: 5px;">[X] Containers</div>
+          <div style="margin-bottom: 5px;">[ ] Images</div>
+          <div style="margin-bottom: 5px;">[ ] Networks</div>
+          <div style="margin-bottom: 5px;">[ ] Volumes</div>
+        </div>
+        <div style="flex: 1; padding-left: 20px;">
+          <div style="color: #fff; border-bottom: 1px solid #333; padding-bottom: 5px; margin-bottom: 10px;">CONTAINER_LIST</div>
+          <div style="display: grid; grid-template-columns: 100px 1fr 100px; gap: 10px; font-size: 0.9em;">
+            <div style="color: #888;">ID</div><div style="color: #888;">NAME</div><div style="color: #888;">STATUS</div>
+            <div>7f2d3a</div><div>nginx_prod</div><div style="color: #0f0;">UP</div>
+            <div>9a1b2c</div><div>db_postgres</div><div style="color: #0f0;">UP</div>
+            <div>4e5f6g</div><div>tentacl_api</div><div style="color: #f00;">EXITED</div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<div class="section">
+  <h3>Question: Navigation Style</h3>
+  <p>How do you want to switch between views?</p>
+  <div class="options">
+    <div class="option" data-choice="sidebar" onclick="toggleSelect(this)">
+      <div class="letter">S</div>
+      <div class="content">
+        <h3>Classic Sidebar</h3>
+        <p>Persistent left navigation. Familiar and efficient.</p>
+      </div>
+    </div>
+    <div class="option" data-choice="tabs" onclick="toggleSelect(this)">
+      <div class="letter">T</div>
+      <div class="content">
+        <h3>Top Tabs</h3>
+        <p>Like a browser or code editor. Saves horizontal space.</p>
+      </div>
+    </div>
+    <div class="option" data-choice="command" onclick="toggleSelect(this)">
+      <div class="letter">C</div>
+      <div class="content">
+        <h3>Command Palette</h3>
+        <p>Minimalist. Press <code>Ctrl+K</code> or <code>/</code> to search and switch views.</p>
+      </div>
+    </div>
+  </div>
+</div>
+
+<p>Take a look at the terminal mockup and pick a navigation style: http://localhost:53044</p>

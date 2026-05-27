@@ -5,11 +5,9 @@ import { fetchNetworks, removeNetwork, fetchNetworkInspect } from '../api/client
 import type { Network } from '../api/client';
 import { ResourceInspector } from './ResourceInspector';
 import { useNotification } from '../context/NotificationContext';
-import { useAuth } from '../context/AuthContext';
 
 export const NetworkTable = () => {
   const queryClient = useQueryClient();
-  const { role } = useAuth();
   const { notify } = useNotification();
   const [selectedNetwork, setSelectedNetwork] = useState<Network | null>(null);
   const { data: networks, isLoading, error } = useQuery({

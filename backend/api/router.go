@@ -8,6 +8,7 @@ import (
 	"github.com/docker/docker/client"
 	"github.com/gibranlp/tentacl/backend/db"
 	"github.com/gibranlp/tentacl/backend/handlers"
+	"github.com/golang-jwt/jwt/v5"
 	echojwt "github.com/labstack/echo-jwt/v4"
 	"github.com/labstack/echo/v4"
 )

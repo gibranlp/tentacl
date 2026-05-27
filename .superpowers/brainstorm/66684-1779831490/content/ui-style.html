@@ -1,0 +1,43 @@
+<h2>Tentacl Architecture & UI Style</h2>
+<p class="subtitle">Focusing on Local-Only management for the MVP.</p>
+
+<div class="section">
+  <h3>Deployment Strategy</h3>
+  <div class="cards">
+    <div class="card selected">
+      <div class="card-body">
+        <h3>Docker Container</h3>
+        <p>Run as <code>docker run -v /var/run/docker.sock:/var/run/docker.sock tentacl/tentacl</code>.</p>
+      </div>
+    </div>
+    <div class="card">
+      <div class="card-body">
+        <h3>Single Binary</h3>
+        <p>Compiled Go binary with embedded React assets. Run as systemd service.</p>
+      </div>
+    </div>
+  </div>
+</div>
+
+<div class="section">
+  <h3>UI Direction</h3>
+  <p>How should Tentacl feel? Portainer is very "Enterprise/Functional".</p>
+  <div class="options">
+    <div class="option" data-choice="clean" onclick="toggleSelect(this)">
+      <div class="letter">C</div>
+      <div class="content">
+        <h3>Clean & Minimal</h3>
+        <p>Vercel-style aesthetics. High contrast, lots of whitespace, focus on speed.</p>
+      </div>
+    </div>
+    <div class="option" data-choice="cyber" onclick="toggleSelect(this)">
+      <div class="letter">T</div>
+      <div class="content">
+        <h3>Terminal/Dark</h3>
+        <p>Dark mode by default. Monospace fonts, "Matrix/Hacker" vibes for VPS power users.</p>
+      </div>
+    </div>
+  </div>
+</div>
+
+<p>Local-only confirmed. Check options: http://localhost:56166. Which UI style you like?</p>

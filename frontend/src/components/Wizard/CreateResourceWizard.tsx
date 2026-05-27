@@ -1,13 +1,14 @@
 import { useWizard } from './WizardContext';
 import { UploadStep } from './Steps/UploadStep';
 import { ConfigStep } from './Steps/ConfigStep';
+import { useNotification } from '../../context/NotificationContext';
 
 export const CreateResourceWizard = ({ isOpen, onClose }: { isOpen: boolean; onClose: () => void }) => {
   const { currentStep, nextStep, prevStep, formData } = useWizard();
-  const [deploying, setDeploying] = useState(false);
+  const { notify } = useNotification();
+  if (!isOpen) return null;
 
   const handleDeploy = async () => {
-    setDeploying(true);
     try {
       const response = await fetch('/api/containers/create', {
         method: 'POST',
@@ -15,12 +16,10 @@ export const CreateResourceWizard = ({ isOpen, onClose }: { isOpen: boolean; onC
         body: JSON.stringify(formData),
       });
       if (!response.ok) throw new Error('Deployment failed');
-      alert('Deployment success!');
+      notify('SUCCESS', 'Container deployment initiated');
       onClose();
     } catch (err) {
-      alert('Deployment failed');
-    } finally {
-      setDeploying(false);
+      notify('ERROR', `Deployment failed: ${(err as Error).message}`);
     }
   };
 
@@ -46,7 +45,7 @@ export const CreateResourceWizard = ({ isOpen, onClose }: { isOpen: boolean; onC
           <div className="space-x-4">
             <button onClick={prevStep} disabled={currentStep === 0} className="text-terminal-dim hover:text-terminal-fg disabled:opacity-30">BACK</button>
             {currentStep === 1 ? (
-              <button onClick={handleDeploy} disabled={deploying} className="text-terminal-accent hover:text-white">DEPLOY</button>
+              <button onClick={handleDeploy} className="text-terminal-accent hover:text-white">DEPLOY</button>
             ) : (
               <button onClick={nextStep} className="text-terminal-accent hover:text-white">NEXT</button>
             )}

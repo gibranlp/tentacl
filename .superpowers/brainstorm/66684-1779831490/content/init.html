@@ -1,0 +1,65 @@
+<h2>Tentacl Project Overview</h2>
+<p class="subtitle">A lightweight, license-free Portainer clone for personal VPS management.</p>
+
+<div class="section">
+  <h3>Core Objectives</h3>
+  <ul>
+    <li><strong>Unlimited:</strong> No feature gates, no seat limits, no "Business Edition" upsells.</li>
+    <li><strong>Lightweight:</strong> Low memory footprint for VPS environments.</li>
+    <li><strong>Docker-First:</strong> Focused on managing Docker containers, images, volumes, and networks.</li>
+    <li><strong>Standalone:</strong> Easy to deploy as a single binary or container.</li>
+  </ul>
+</div>
+
+<div class="section">
+  <h3>Proposed Tech Stack</h3>
+  <div class="options">
+    <div class="option selected" data-choice="backend" onclick="toggleSelect(this)">
+      <div class="letter">G</div>
+      <div class="content">
+        <h3>Go Backend</h3>
+        <p>Efficient, fast Docker API integration, compiles to static binary.</p>
+      </div>
+    </div>
+    <div class="option selected" data-choice="frontend" onclick="toggleSelect(this)">
+      <div class="letter">R</div>
+      <div class="content">
+        <h3>React Frontend</h3>
+        <p>TypeScript + Tailwind CSS for a modern, responsive dashboard.</p>
+      </div>
+    </div>
+    <div class="option selected" data-choice="database" onclick="toggleSelect(this)">
+      <div class="letter">B</div>
+      <div class="content">
+        <h3>Embedded DB</h3>
+        <p>BadgerDB or BoltDB. No external database setup required.</p>
+      </div>
+    </div>
+  </div>
+</div>
+
+<div class="section">
+  <h3>Phase 1 Features</h3>
+  <div class="cards">
+    <div class="card">
+      <div class="card-body">
+        <h3>Dashboard</h3>
+        <p>Overview of running containers, CPU/RAM usage.</p>
+      </div>
+    </div>
+    <div class="card">
+      <div class="card-body">
+        <h3>Container Management</h3>
+        <p>List, Start, Stop, Restart, Remove, Logs, Stats.</p>
+      </div>
+    </div>
+    <div class="card">
+      <div class="card-body">
+        <h3>Image Management</h3>
+        <p>List, Pull, Push, Remove images.</p>
+      </div>
+    </div>
+  </div>
+</div>
+
+<p>Take a look at the proposed stack and features. Does this align with your vision for Tentacl?</p>

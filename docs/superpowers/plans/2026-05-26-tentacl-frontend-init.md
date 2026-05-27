@@ -92,7 +92,7 @@ const navItems = [
 
 export const Sidebar = () => (
   <div className="w-64 h-screen border-r border-terminal-dim flex flex-col p-4">
-    <div className="text-xl font-bold mb-8 text-white tracking-tighter">Tentacl v0.1.2</div>
+    <div className="text-xl font-bold mb-8 text-white tracking-tighter">Tentacl v0.1.0</div>
     <nav className="flex-1 space-y-2">
       {navItems.map((item) => (
         <div key={item.label} className="flex items-center space-x-2 cursor-pointer hover:bg-terminal-dim p-2 rounded group">
