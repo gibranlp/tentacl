@@ -47,15 +47,31 @@ export const ContainerTable = () => {
         <div className="overflow-x-auto border border-terminal-dim/50 rounded-lg">
           <table className="w-full text-left border-collapse">
             <thead>
-              <tr className="border-b border-terminal-dim text-xs text-gray-500 font-mono bg-terminal-dim/5">
-                <th className="py-2 px-3 w-8">
-                  <input type="checkbox" checked={selectedIds.size === containers?.length && containers?.length > 0} onChange={toggleSelectAll} className="accent-terminal-accent" />
-                </th>
-                <th className="py-2 px-3">ID</th>
-                <th className="py-2 px-3">NAME</th>
-                <th className="py-2 px-3">STATUS</th>
-                <th className="py-2 px-3 text-right">ACTIONS</th>
-              </tr>
+              {selectedIds.size > 0 ? (
+                <tr className="border-b border-terminal-dim text-xs font-mono bg-terminal-accent text-black">
+                  <th className="py-2 px-3 w-8">
+                    <input type="checkbox" checked={true} onChange={() => setSelectedIds(new Set())} className="accent-black" />
+                  </th>
+                  <th colSpan={4} className="py-2 px-3 text-left">
+                    {selectedIds.size} SELECTED
+                    <span className="ml-4 space-x-2">
+                      <button onClick={() => {}} className="hover:underline font-bold">START</button>
+                      <button onClick={() => {}} className="hover:underline font-bold">STOP</button>
+                      <button onClick={() => {}} className="hover:underline font-bold">REMOVE</button>
+                    </span>
+                  </th>
+                </tr>
+              ) : (
+                <tr className="border-b border-terminal-dim text-xs text-gray-500 font-mono bg-terminal-dim/5">
+                  <th className="py-2 px-3 w-8">
+                    <input type="checkbox" checked={selectedIds.size === containers?.length && containers?.length > 0} onChange={toggleSelectAll} className="accent-terminal-accent" />
+                  </th>
+                  <th className="py-2 px-3">ID</th>
+                  <th className="py-2 px-3">NAME</th>
+                  <th className="py-2 px-3">STATUS</th>
+                  <th className="py-2 px-3 text-right">ACTIONS</th>
+                </tr>
+              )}
             </thead>
             <tbody className="text-sm font-mono">
               {containers?.map((c: Container) => (
