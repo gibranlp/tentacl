@@ -74,9 +74,15 @@ function Dashboard() {
         );
       case 'IMAGES':
         return (
-          <div className="space-y-4 animate-in fade-in duration-500">
-            <h2 className="text-white border-b border-terminal-dim pb-2 font-mono">{'>'} IMAGE_MANAGEMENT</h2>
-            <ImageTable />
+          <div className="grid grid-cols-4 gap-4 animate-in fade-in duration-500">
+            <div className="col-span-1 border border-terminal-dim p-4 bg-black/20">
+              <h3 className="text-terminal-fg font-mono mb-4">{'>'} REGISTRIES</h3>
+              {/* Registry list and Add button will go here */}
+            </div>
+            <div className="col-span-3 space-y-4">
+              <h2 className="text-white border-b border-terminal-dim pb-2 font-mono">{'>'} IMAGE_MANAGEMENT</h2>
+              <ImageTable />
+            </div>
           </div>
         );
       case 'NETWORKS':
