@@ -18,6 +18,7 @@ func RegisterRoutes(e *echo.Echo, dockerClient *client.Client, database *db.DB, 
 	imageHandler := &handlers.ImageHandler{Docker: dockerClient}
 	networkHandler := &handlers.NetworkHandler{Docker: dockerClient}
 	volumeHandler := &handlers.VolumeHandler{Docker: dockerClient}
+	registryHandler := &handlers.RegistryHandler{DB: database}
 	hostHandler := &handlers.HostHandler{}
 	authHandler := &handlers.AuthHandler{DB: database}
 
@@ -44,6 +45,10 @@ func RegisterRoutes(e *echo.Echo, dockerClient *client.Client, database *db.DB, 
 	}))
 
 	apiGroup.POST("/users", authHandler.CreateUser)
+
+	apiGroup.POST("/registries", registryHandler.Add)
+	apiGroup.GET("/registries", registryHandler.List)
+	apiGroup.DELETE("/registries/:id", registryHandler.Remove)
 
 	apiGroup.GET("/host/stats", hostHandler.Stats)
 	apiGroup.GET("/containers", containerHandler.List)
