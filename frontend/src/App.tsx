@@ -5,6 +5,7 @@ import { ContainerTable } from './components/ContainerTable';
 import { ImageTable } from './components/ImageTable';
 import { NetworkTable } from './components/NetworkTable';
 import { VolumeTable } from './components/VolumeTable';
+import { CreateResourceWizard } from './components/CreateResourceWizard';
 import { fetchHostStats, checkAuthStatus } from './api/client';
 import { AuthProvider, useAuth } from './context/AuthContext';
 import { LoginView } from './views/LoginView';
@@ -12,6 +13,7 @@ import { SetupView } from './views/SetupView';
 
 function Dashboard() {
   const [activeView, setActiveView] = useState('DASHBOARD');
+  const [isWizardOpen, setIsWizardOpen] = useState(false);
 
   const { data: stats, isLoading: statsLoading } = useQuery({
     queryKey: ['host-stats'],
@@ -107,6 +109,13 @@ function Dashboard() {
   return (
     <Layout activeView={activeView} onViewChange={setActiveView}>
       {renderContent()}
+      <button 
+        onClick={() => setIsWizardOpen(true)}
+        className="fixed bottom-8 right-8 bg-terminal-accent text-black font-bold p-4 rounded-full font-mono"
+      >
+        +
+      </button>
+      <CreateResourceWizard isOpen={isWizardOpen} onClose={() => setIsWizardOpen(false)} />
     </Layout>
   );
 }
