@@ -3,12 +3,12 @@ services:
     build: .
     container_name: tentacl
     ports:
-      - "8080:8080"
+      - "8095:8095"
     volumes:
       - /var/run/docker.sock:/var/run/docker.sock
       - ./data:/app/data
     healthcheck:
-      test: ["CMD", "wget", "--no-verbose", "--tries=1", "--spider", "http://localhost:8080/health"]
+      test: ["CMD", "wget", "--no-verbose", "--tries=1", "--spider", "http://localhost:8095/health"]
       interval: 30s
       timeout: 10s
       retries: 3

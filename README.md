@@ -23,7 +23,7 @@ A lightweight, license-free Docker management dashboard for personal VPS users.
    ```bash
    docker-compose up -d --build
    ```
-3. Access at `http://localhost:8080`.
+3. Access at `http://localhost:8095`.
 
 ### Nginx Reverse Proxy Example
 
@@ -35,7 +35,7 @@ server {
     server_name tentacl.example.com;
 
     location / {
-        proxy_pass http://127.0.0.1:8080;
+        proxy_pass http://127.0.0.1:8095;
         proxy_http_version 1.1;
         proxy_set_header Upgrade $http_upgrade;
         proxy_set_header Connection "upgrade";

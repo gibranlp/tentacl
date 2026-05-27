@@ -30,5 +30,5 @@ func main() {
 	// Register all routes
 	api.RegisterRoutes(e, cli, http.FS(distFS))
 
-	e.Logger.Fatal(e.Start(":8080"))
+	e.Logger.Fatal(e.Start(":8095"))
 }
