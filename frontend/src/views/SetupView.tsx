@@ -31,7 +31,7 @@ export const SetupView = () => {
       const res = await setupUser({ username, password });
       login(res.token);
     } catch (err) {
-      setError('Setup failed. Ensure database is writable.');
+      setError((err as Error).message || 'Setup failed. Ensure database is writable.');
     } finally {
       setLoading(false);
     }

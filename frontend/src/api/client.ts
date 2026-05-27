@@ -160,7 +160,10 @@ export const setupUser = async (credentials: any): Promise<{ token: string }> =>
     headers: { 'Content-Type': 'application/json' },
     body: JSON.stringify(credentials),
   });
-  if (!response.ok) throw new Error('Setup failed');
+  if (!response.ok) {
+    const errorData = await response.json().catch(() => ({}));
+    throw new Error(errorData.error || 'Setup failed');
+  }
   return response.json();
 };
 

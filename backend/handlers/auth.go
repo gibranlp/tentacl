@@ -25,6 +25,10 @@ type AuthResponse struct {
 }
 
 func (h *AuthHandler) Status(c echo.Context) error {
+	if h.DB == nil {
+		return c.JSON(http.StatusInternalServerError, map[string]string{"error": "Database is not initialized (h.DB is nil)"})
+	}
+
 	hasUsers, err := h.DB.HasUsers()
 	if err != nil {
 		return c.JSON(http.StatusInternalServerError, map[string]string{"error": "Database error"})
@@ -33,9 +37,14 @@ func (h *AuthHandler) Status(c echo.Context) error {
 }
 
 func (h *AuthHandler) Setup(c echo.Context) error {
+	if h.DB == nil {
+		return c.JSON(http.StatusInternalServerError, map[string]string{"error": "Database is not initialized (h.DB is nil)"})
+	}
+	
 	hasUsers, err := h.DB.HasUsers()
 	if err != nil {
-		return c.JSON(http.StatusInternalServerError, map[string]string{"error": "Database error"})
+		c.Logger().Error("Setup HasUsers error: ", err)
+		return c.JSON(http.StatusInternalServerError, map[string]string{"error": "Database error checking users: " + err.Error()})
 	}
 	if hasUsers {
 		return c.JSON(http.StatusForbidden, map[string]string{"error": "Setup already complete"})
@@ -50,7 +59,8 @@ func (h *AuthHandler) Setup(c echo.Context) error {
 	}
 
 	if err := h.DB.CreateUser(req.Username, req.Password); err != nil {
-		return c.JSON(http.StatusInternalServerError, map[string]string{"error": "Failed to create user"})
+		c.Logger().Error("Setup CreateUser error: ", err)
+		return c.JSON(http.StatusInternalServerError, map[string]string{"error": "Failed to create user: " + err.Error()})
 	}
 
 	return h.generateTokenResponse(c, req.Username)
