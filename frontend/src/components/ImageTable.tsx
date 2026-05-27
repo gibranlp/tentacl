@@ -1,10 +1,13 @@
+import { useState } from 'react';
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
-import { Trash2 } from 'lucide-react';
-import { fetchImages, removeImage } from '../api/client';
+import { Trash2, Info } from 'lucide-react';
+import { fetchImages, removeImage, fetchImageInspect } from '../api/client';
 import type { DockerImage } from '../api/client';
+import { ResourceInspector } from './ResourceInspector';
 
 export const ImageTable = () => {
   const queryClient = useQueryClient();
+  const [selectedImage, setSelectedImage] = useState<DockerImage | null>(null);
   const { data: images, isLoading, error } = useQuery({
     queryKey: ['images'],
     queryFn: fetchImages,
@@ -13,7 +16,10 @@ export const ImageTable = () => {
 
   const removeMutation = useMutation({
     mutationFn: removeImage,
-    onSuccess: () => queryClient.invalidateQueries({ queryKey: ['images'] }),
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ['images'] });
+      if (selectedImage) setSelectedImage(null);
+    },
   });
 
   if (isLoading) return <div className="text-terminal-accent animate-pulse font-mono">FETCHING_IMAGES...</div>;
@@ -25,56 +31,79 @@ export const ImageTable = () => {
   };
 
   return (
-    <div className="mt-6">
-      <h3 className="text-white mb-4 font-mono">{'>'} IMAGE_LIST</h3>
-      <div className="overflow-x-auto">
-        <table className="w-full text-left border-collapse">
-          <thead>
-            <tr className="border-b border-terminal-dim text-xs text-gray-500 font-mono">
-              <th className="py-2">ID</th>
-              <th className="py-2">TAGS</th>
-              <th className="py-2">SIZE</th>
-              <th className="py-2">CREATED</th>
-              <th className="py-2 text-right">ACTIONS</th>
-            </tr>
-          </thead>
-          <tbody className="text-sm font-mono">
-            {images?.map((img: DockerImage) => (
-              <tr key={img.Id} className="border-b border-terminal-dim hover:bg-terminal-dim/30 group transition-colors">
-                <td className="py-3 font-mono text-terminal-accent">{img.Id.split(':')[1]?.substring(0, 12) || img.Id.substring(0, 12)}</td>
-                <td className="py-3 text-white">
-                  {img.RepoTags?.join(', ') || '<none>'}
-                </td>
-                <td className="py-3 text-gray-400">{formatSize(img.Size)}</td>
-                <td className="py-3 text-xs text-gray-400">
-                  {new Date(img.Created * 1000).toLocaleDateString()}
-                </td>
-                <td className="py-3 text-right">
-                  <button
-                    onClick={() => {
-                      if (confirm(`Remove image ${img.RepoTags?.[0] || img.Id}?`)) {
-                        removeMutation.mutate(img.Id);
-                      }
-                    }}
-                    disabled={removeMutation.isPending}
-                    className="p-1 hover:text-terminal-danger transition-colors disabled:opacity-50"
-                    title="Remove"
-                  >
-                    <Trash2 size={16} />
-                  </button>
-                </td>
+    <div className={`mt-6 transition-all duration-500 ${selectedImage ? 'flex flex-col lg:flex-row space-y-6 lg:space-y-0 lg:space-x-6' : ''}`}>
+      <div className={`${selectedImage ? 'lg:w-1/2' : 'w-full'}`}>
+        <h3 className="text-white mb-4 font-mono">{'>'} IMAGE_LIST</h3>
+        <div className="overflow-x-auto border border-terminal-dim/50 rounded-lg">
+          <table className="w-full text-left border-collapse">
+            <thead>
+              <tr className="border-b border-terminal-dim text-xs text-gray-500 font-mono bg-terminal-dim/5">
+                <th className="py-2 px-3">ID</th>
+                <th className="py-2 px-3">TAGS</th>
+                <th className="py-2 px-3">SIZE</th>
+                <th className="py-2 px-3 text-right">ACTIONS</th>
               </tr>
-            ))}
-            {images?.length === 0 && (
-              <tr>
-                <td colSpan={5} className="py-4 text-center text-gray-500 italic">
-                  NO_IMAGES_FOUND
-                </td>
-              </tr>
-            )}
-          </tbody>
-        </table>
+            </thead>
+            <tbody className="text-sm font-mono">
+              {images?.map((img: DockerImage) => (
+                <tr 
+                  key={img.Id} 
+                  onClick={() => setSelectedImage(img)}
+                  className={`border-b border-terminal-dim hover:bg-terminal-dim/30 group transition-colors cursor-pointer ${selectedImage?.Id === img.Id ? 'bg-terminal-dim/40' : ''}`}
+                >
+                  <td className="py-3 px-3 font-mono text-terminal-accent">{img.Id.split(':')[1]?.substring(0, 12) || img.Id.substring(0, 12)}</td>
+                  <td className="py-3 px-3 text-white truncate max-w-[200px]" title={img.RepoTags?.join(', ')}>
+                    {img.RepoTags?.join(', ') || '<none>'}
+                  </td>
+                  <td className="py-3 px-3 text-gray-400">{formatSize(img.Size)}</td>
+                  <td className="py-3 px-3 text-right" onClick={(e) => e.stopPropagation()}>
+                    <div className="flex justify-end space-x-2">
+                      <button
+                        onClick={() => setSelectedImage(img)}
+                        className="p-1 hover:text-terminal-accent transition-colors"
+                        title="Inspect"
+                      >
+                        <Info size={16} />
+                      </button>
+                      <button
+                        onClick={() => {
+                          if (confirm(`Remove image ${img.RepoTags?.[0] || img.Id}?`)) {
+                            removeMutation.mutate(img.Id);
+                          }
+                        }}
+                        disabled={removeMutation.isPending}
+                        className="p-1 hover:text-terminal-danger transition-colors disabled:opacity-50"
+                        title="Remove"
+                      >
+                        <Trash2 size={16} />
+                      </button>
+                    </div>
+                  </td>
+                </tr>
+              ))}
+              {images?.length === 0 && (
+                <tr>
+                  <td colSpan={4} className="py-4 text-center text-gray-500 italic">
+                    NO_IMAGES_FOUND
+                  </td>
+                </tr>
+              )}
+            </tbody>
+          </table>
+        </div>
       </div>
+
+      {selectedImage && (
+        <div className="lg:w-1/2 h-[800px] lg:h-[calc(100vh-200px)] animate-in slide-in-from-right-4 duration-300 lg:sticky lg:top-0">
+          <ResourceInspector 
+            resourceId={selectedImage.Id} 
+            resourceName={selectedImage.RepoTags?.[0] || selectedImage.Id.substring(0, 12)} 
+            title="IMAGE" 
+            fetchFn={fetchImageInspect} 
+            onClose={() => setSelectedImage(null)} 
+          />
+        </div>
+      )}
     </div>
   );
 };

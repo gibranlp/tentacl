@@ -30,3 +30,12 @@ func (h *VolumeHandler) Remove(c echo.Context) error {
 	}
 	return c.NoContent(http.StatusNoContent)
 }
+
+func (h *VolumeHandler) Inspect(c echo.Context) error {
+	name := c.Param("name")
+	inspect, err := h.Docker.VolumeInspect(c.Request().Context(), name)
+	if err != nil {
+		return c.JSON(http.StatusInternalServerError, map[string]string{"error": err.Error()})
+	}
+	return c.JSON(http.StatusOK, inspect)
+}

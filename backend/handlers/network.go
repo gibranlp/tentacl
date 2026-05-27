@@ -30,3 +30,12 @@ func (h *NetworkHandler) Remove(c echo.Context) error {
 	}
 	return c.NoContent(http.StatusNoContent)
 }
+
+func (h *NetworkHandler) Inspect(c echo.Context) error {
+	id := c.Param("id")
+	inspect, err := h.Docker.NetworkInspect(c.Request().Context(), id, network.InspectOptions{})
+	if err != nil {
+		return c.JSON(http.StatusInternalServerError, map[string]string{"error": err.Error()})
+	}
+	return c.JSON(http.StatusOK, inspect)
+}

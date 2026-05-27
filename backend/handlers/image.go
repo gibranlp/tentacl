@@ -30,3 +30,12 @@ func (h *ImageHandler) Remove(c echo.Context) error {
 	}
 	return c.NoContent(http.StatusNoContent)
 }
+
+func (h *ImageHandler) Inspect(c echo.Context) error {
+	id := c.Param("id")
+	inspect, _, err := h.Docker.ImageInspectWithRaw(c.Request().Context(), id)
+	if err != nil {
+		return c.JSON(http.StatusInternalServerError, map[string]string{"error": err.Error()})
+	}
+	return c.JSON(http.StatusOK, inspect)
+}

@@ -48,15 +48,33 @@ export const fetchImages = async (): Promise<DockerImage[]> => {
   return response.json();
 };
 
+export const fetchImageInspect = async (id: string): Promise<any> => {
+  const response = await fetch(`/api/images/${id}`);
+  if (!response.ok) throw new Error('Failed to inspect image');
+  return response.json();
+};
+
 export const fetchNetworks = async (): Promise<Network[]> => {
   const response = await fetch('/api/networks');
   if (!response.ok) throw new Error('Failed to fetch networks');
   return response.json();
 };
 
+export const fetchNetworkInspect = async (id: string): Promise<any> => {
+  const response = await fetch(`/api/networks/${id}`);
+  if (!response.ok) throw new Error('Failed to inspect network');
+  return response.json();
+};
+
 export const fetchVolumes = async (): Promise<Volume[]> => {
   const response = await fetch('/api/volumes');
   if (!response.ok) throw new Error('Failed to fetch volumes');
+  return response.json();
+};
+
+export const fetchVolumeInspect = async (name: string): Promise<any> => {
+  const response = await fetch(`/api/volumes/${name}`);
+  if (!response.ok) throw new Error('Failed to inspect volume');
   return response.json();
 };
 

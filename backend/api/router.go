@@ -29,10 +29,13 @@ func RegisterRoutes(e *echo.Echo, dockerClient *client.Client, staticFS http.Fil
 
 	e.GET("/api/images", imageHandler.List)
 	e.DELETE("/api/images/:id", imageHandler.Remove)
+	e.GET("/api/images/:id", imageHandler.Inspect)
 	e.GET("/api/networks", networkHandler.List)
 	e.DELETE("/api/networks/:id", networkHandler.Remove)
+	e.GET("/api/networks/:id", networkHandler.Inspect)
 	e.GET("/api/volumes", volumeHandler.List)
 	e.DELETE("/api/volumes/:name", volumeHandler.Remove)
+	e.GET("/api/volumes/:name", volumeHandler.Inspect)
 
 	e.GET("/api/containers/:id/logs", containerHandler.Logs)
 	e.GET("/api/containers/:id/inspect", containerHandler.Inspect)
