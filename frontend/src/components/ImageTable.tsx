@@ -1,17 +1,27 @@
 import { useState } from 'react';
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
-import { Trash2, Info } from 'lucide-react';
-import { fetchImages, removeImage, fetchImageInspect } from '../api/client';
+import { Trash2, Info, Download } from 'lucide-react';
+import { fetchImages, removeImage, fetchImageInspect, pullImage } from '../api/client';
 import type { DockerImage } from '../api/client';
 import { ResourceInspector } from './ResourceInspector';
 
 export const ImageTable = () => {
   const queryClient = useQueryClient();
   const [selectedImage, setSelectedImage] = useState<DockerImage | null>(null);
+  const [imageName, setImageName] = useState('');
+  
   const { data: images, isLoading, error } = useQuery({
     queryKey: ['images'],
     queryFn: fetchImages,
-    refetchInterval: 10000, // Poll every 10s
+    refetchInterval: 10000,
+  });
+
+  const pullMutation = useMutation({
+    mutationFn: (img: string) => pullImage(img),
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ['images'] });
+      setImageName('');
+    },
   });
 
   const removeMutation = useMutation({
@@ -33,7 +43,25 @@ export const ImageTable = () => {
   return (
     <div className={`mt-6 transition-all duration-500 ${selectedImage ? 'flex flex-col lg:flex-row space-y-6 lg:space-y-0 lg:space-x-6' : ''}`}>
       <div className={`${selectedImage ? 'lg:w-1/2' : 'w-full'}`}>
-        <h3 className="text-white mb-4 font-mono">{'>'} IMAGE_LIST</h3>
+        <div className="flex justify-between items-center mb-4">
+          <h3 className="text-white font-mono">{'>'} IMAGE_LIST</h3>
+          <div className="flex space-x-2">
+            <input 
+              type="text" 
+              value={imageName}
+              onChange={(e) => setImageName(e.target.value)}
+              placeholder="e.g. nginx:latest"
+              className="bg-black border border-terminal-dim p-1 px-2 text-terminal-fg font-mono text-sm focus:outline-none focus:border-terminal-accent"
+            />
+            <button 
+              onClick={() => pullMutation.mutate(imageName)}
+              disabled={pullMutation.isPending || !imageName}
+              className="bg-terminal-accent text-black p-1 px-3 font-bold hover:bg-white transition-colors disabled:opacity-50"
+            >
+              <Download size={16} />
+            </button>
+          </div>
+        </div>
         <div className="overflow-x-auto border border-terminal-dim/50 rounded-lg">
           <table className="w-full text-left border-collapse">
             <thead>

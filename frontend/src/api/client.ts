@@ -167,12 +167,14 @@ export const setupUser = async (credentials: any): Promise<{ token: string }> =>
   return response.json();
 };
 
-export const loginUser = async (credentials: any): Promise<{ token: string }> => {
-  const response = await fetch('/api/auth/login', {
+export const pullImage = async (image: string, url?: string, token?: string) => {
+  const response = await fetchWithAuth('/api/images/pull', {
     method: 'POST',
     headers: { 'Content-Type': 'application/json' },
-    body: JSON.stringify(credentials),
+    body: JSON.stringify({ image, url, token }),
   });
-  if (!response.ok) throw new Error('Login failed');
-  return response.json();
+  if (!response.ok) {
+    const errorData = await response.json().catch(() => ({}));
+    throw new Error(errorData.error || 'Failed to pull image');
+  }
 };
